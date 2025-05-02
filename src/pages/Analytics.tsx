@@ -528,17 +528,17 @@ const Analytics = () => {
                       <Badge variant="neutral">{report.format}</Badge>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 space-x-2">
-                      <button className="text-blue-600 hover:text-blue-900">
-                        <RefreshCw className="h-4 w-4 inline-block" title="Run Report" />
+                      <button className="text-blue-600 hover:text-blue-900" aria-label="Run Report">
+                        <RefreshCw className="h-4 w-4 inline-block" />
                       </button>
-                      <button className="text-indigo-600 hover:text-indigo-900">
-                        <Download className="h-4 w-4 inline-block" title="Download" />
+                      <button className="text-indigo-600 hover:text-indigo-900" aria-label="Download">
+                        <Download className="h-4 w-4 inline-block" />
                       </button>
-                      <button className="text-green-600 hover:text-green-900">
-                        <Share className="h-4 w-4 inline-block" title="Share" />
+                      <button className="text-green-600 hover:text-green-900" aria-label="Share">
+                        <Share className="h-4 w-4 inline-block" />
                       </button>
-                      <button className="text-gray-600 hover:text-gray-900">
-                        <Clipboard className="h-4 w-4 inline-block" title="Copy Report Link" />
+                      <button className="text-gray-600 hover:text-gray-900" aria-label="Copy Report Link">
+                        <Clipboard className="h-4 w-4 inline-block" />
                       </button>
                     </td>
                   </tr>
