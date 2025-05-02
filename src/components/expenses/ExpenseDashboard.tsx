@@ -128,6 +128,18 @@ export function ExpenseDashboard({ expenseData, baseCurrency, currencies, office
   // Chart colors
   const CHART_COLORS = ['#8B5CF6', '#D946EF', '#F97316', '#0EA5E9', '#10B981', '#F59E0B', '#EC4899', '#6366F1'];
 
+  // Chart configurations for category, payment method and office charts
+  const categoryChartConfig = {
+    category1: { color: "#8B5CF6" },
+    category2: { color: "#D946EF" },
+    category3: { color: "#F97316" },
+    category4: { color: "#0EA5E9" },
+    category5: { color: "#10B981" },
+    category6: { color: "#F59E0B" },
+    category7: { color: "#EC4899" },
+    category8: { color: "#6366F1" }
+  };
+
   return (
     <div className="space-y-6">
       {/* Key Financial Metrics */}
@@ -241,7 +253,7 @@ export function ExpenseDashboard({ expenseData, baseCurrency, currencies, office
           </CardHeader>
           <CardContent className="p-6">
             <div className="h-64">
-              <ChartContainer>
+              <ChartContainer config={categoryChartConfig}>
                 <ResponsiveContainer width="100%" height="100%">
                   <RechartsPI>
                     <Pie
@@ -275,7 +287,7 @@ export function ExpenseDashboard({ expenseData, baseCurrency, currencies, office
           </CardHeader>
           <CardContent className="p-6">
             <div className="h-64">
-              <ChartContainer>
+              <ChartContainer config={categoryChartConfig}>
                 <ResponsiveContainer width="100%" height="100%">
                   <RechartsPI>
                     <Pie
@@ -309,7 +321,7 @@ export function ExpenseDashboard({ expenseData, baseCurrency, currencies, office
           </CardHeader>
           <CardContent className="p-6">
             <div className="h-64">
-              <ChartContainer>
+              <ChartContainer config={categoryChartConfig}>
                 <ResponsiveContainer width="100%" height="100%">
                   <RechartsPI>
                     <Pie
