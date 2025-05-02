@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   FileText, Search, Plus, ChevronDown, Filter, 
@@ -14,11 +13,23 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { toast } from "@/hooks/use-toast";
 
 const BillsInvoices = () => {
   const [activeTab, setActiveTab] = useState('invoices');
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+  const [showCreditNoteModal, setShowCreditNoteModal] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+  const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
+  const [creditNoteReason, setCreditNoteReason] = useState('');
+  const [creditNoteAmount, setCreditNoteAmount] = useState('');
   
   // Sample data
   const invoicingData = {
@@ -164,6 +175,48 @@ const BillsInvoices = () => {
     }
   };
   
+  // Handle credit note creation
+  const handleCreateCreditNote = () => {
+    if (!selectedInvoice) {
+      toast({
+        title: "Error",
+        description: "Please select an invoice",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!creditNoteAmount || parseFloat(creditNoteAmount) <= 0) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid amount",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!creditNoteReason) {
+      toast({
+        title: "Error",
+        description: "Please enter a reason for the credit note",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // In a real application, this would be sent to the server
+    // For this demo, we'll just show a success message and close the modal
+    toast({
+      title: "Credit Note Created",
+      description: `Credit note for ${formatCurrency(parseFloat(creditNoteAmount))} has been created.`,
+    });
+    
+    setShowCreditNoteModal(false);
+    setSelectedInvoice(null);
+    setCreditNoteReason('');
+    setCreditNoteAmount('');
+  };
+  
   // Render Invoices Tab
   const renderInvoices = () => {
     return (
@@ -260,7 +313,7 @@ const BillsInvoices = () => {
             <Button variant="outline" className="flex items-center">
               <Filter className="h-4 w-4 mr-2" /> Filter
             </Button>
-            <Button className="flex items-center">
+            <Button onClick={() => setShowCreditNoteModal(true)} className="flex items-center">
               <Plus className="h-4 w-4 mr-2" /> New Credit Note
             </Button>
             <Button variant="outline" className="flex items-center">
@@ -564,6 +617,130 @@ const BillsInvoices = () => {
       </Dialog>
     );
   };
+  
+  // Credit Note Modal
+  const renderCreditNoteModal = () => {
+    return (
+      <Dialog open={showCreditNoteModal} onOpenChange={setShowCreditNoteModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Create New Credit Note</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="invoice" className="block text-sm font-medium text-gray-700 mb-1">
+                Related Invoice
+              </label>
+              <Select 
+                onValueChange={(value) => {
+                  const invoice = invoicingData.recentInvoices.find(inv => inv.id === value);
+                  setSelectedInvoice(invoice);
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select an invoice" />
+                </SelectTrigger>
+                <SelectContent>
+                  {invoicingData.recentInvoices.map((invoice) => (
+                    <SelectItem key={invoice.id} value={invoice.id}>
+                      {invoice.id} - {invoice.customer} ({formatCurrency(invoice.amount)})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {selectedInvoice && (
+              <div className="bg-gray-50 p-4 rounded-md">
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Invoice Details</h4>
+                <div className="space-y-1">
+                  <p className="text-sm">
+                    <span className="text-gray-600">Customer:</span> {selectedInvoice.customer}
+                  </p>
+                  <p className="text-sm">
+                    <span className="text-gray-600">Invoice Date:</span> {selectedInvoice.date}
+                  </p>
+                  <p className="text-sm">
+                    <span className="text-gray-600">Original Amount:</span> {formatCurrency(selectedInvoice.amount)}
+                  </p>
+                  <p className="text-sm">
+                    <span className="text-gray-600">Status:</span> {getStatusBadge(selectedInvoice.status)}
+                  </p>
+                </div>
+              </div>
+            )}
+            
+            <div>
+              <label htmlFor="credit-note-amount" className="block text-sm font-medium text-gray-700 mb-1">
+                Credit Note Amount
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <span className="text-gray-500 sm:text-sm">$</span>
+                </div>
+                <Input
+                  id="credit-note-amount"
+                  type="number"
+                  placeholder="0.00"
+                  className="pl-7"
+                  value={creditNoteAmount}
+                  onChange={(e) => setCreditNoteAmount(e.target.value)}
+                  step="0.01"
+                  min="0.01"
+                  max={selectedInvoice?.amount || 9999999}
+                />
+              </div>
+            </div>
+            
+            <div>
+              <label htmlFor="reason" className="block text-sm font-medium text-gray-700 mb-1">
+                Reason for Credit Note
+              </label>
+              <Textarea
+                id="reason"
+                placeholder="Enter the reason for this credit note"
+                value={creditNoteReason}
+                onChange={(e) => setCreditNoteReason(e.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCreditNoteModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateCreditNote}>
+              Create Credit Note
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+  
+  // Render content based on active tab
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'invoices':
+        return renderInvoices();
+      case 'creditNotes':
+        return renderCreditNotes();
+      case 'statements':
+        return renderStatements();
+      case 'templates':
+        return renderTemplates();
+      default:
+        return (
+          <Card className="p-6">
+            <div className="text-center py-8">
+              <p className="text-gray-500">Select a tab to view content</p>
+            </div>
+          </Card>
+        );
+    }
+  };
 
   return (
     <div className="container mx-auto p-6 bg-gray-50 min-h-screen">
@@ -644,8 +821,9 @@ const BillsInvoices = () => {
         </TabsContent>
       </Tabs>
       
-      {/* Invoice Modal */}
+      {/* Modals */}
       {renderInvoiceModal()}
+      {renderCreditNoteModal()}
     </div>
   );
 };
