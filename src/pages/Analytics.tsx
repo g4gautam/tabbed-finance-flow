@@ -9,13 +9,30 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  BarChart,
+  Bar,
+  PieChart as RechartsPI,
+  Pie,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  Cell
+} from 'recharts';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const Analytics = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [dateRange, setDateRange] = useState('This Month');
   const [showCustomDate, setShowCustomDate] = useState(false);
   
-  // Sample reports data
+  // Sample reports data - using existing mock data
   const reportsData = {
     profitLossSummary: {
       totalRevenue: 278450.75,
@@ -125,6 +142,9 @@ const Analytics = () => {
       }
     ]
   };
+
+  // Chart colors
+  const COLORS = ['#8B5CF6', '#D946EF', '#F97316', '#0EA5E9', '#10B981'];
   
   // Format currency
   const formatCurrency = (amount: number, currency = 'USD') => {
@@ -210,57 +230,77 @@ const Analytics = () => {
             <CardTitle className="text-lg font-medium text-gray-800">Revenue by Category</CardTitle>
           </CardHeader>
           <CardContent className="p-6">
-            <div className="mb-6">
-              {/* This would be a chart in a real implementation */}
-              <div className="bg-gray-100 h-64 rounded-lg flex items-center justify-center">
-                <div className="text-center">
-                  <PieChart size={48} className="text-blue-500 mx-auto mb-3" />
-                  <p className="text-gray-500">Revenue Distribution Chart</p>
-                </div>
-              </div>
+            <div className="mb-6 h-64">
+              <ChartContainer 
+                config={{ 
+                  revenue: { color: "#8B5CF6" },
+                  expenses: { color: "#F97316" }
+                }}
+              >
+                <ResponsiveContainer width="100%" height="100%">
+                  <RechartsPI>
+                    <Pie
+                      data={profitLossSummary.revenueByCategory}
+                      dataKey="amount"
+                      nameKey="category"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      label={({category, percentage}) => `${category}: ${percentage}%`}
+                    >
+                      {profitLossSummary.revenueByCategory.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip content={(props) => {
+                      if (props.payload && props.payload.length) {
+                        const data = props.payload[0].payload;
+                        return (
+                          <div className="bg-white p-2 border border-gray-200 shadow-lg rounded">
+                            <p className="font-medium">{data.category}</p>
+                            <p>{formatCurrency(data.amount)}</p>
+                            <p>{formatPercent(data.percentage)}</p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }} />
+                    <Legend />
+                  </RechartsPI>
+                </ResponsiveContainer>
+              </ChartContainer>
             </div>
             <div className="mt-4 overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Category
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Amount
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      % of Revenue
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Distribution
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>% of Revenue</TableHead>
+                    <TableHead>Distribution</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {profitLossSummary.revenueByCategory.map((item, index) => (
-                    <tr key={index} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {item.category}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatCurrency(item.amount)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatPercent(item.percentage)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                    <TableRow key={index} className="hover:bg-gray-50">
+                      <TableCell className="font-medium">{item.category}</TableCell>
+                      <TableCell>{formatCurrency(item.amount)}</TableCell>
+                      <TableCell>{formatPercent(item.percentage)}</TableCell>
+                      <TableCell>
                         <div className="w-full bg-gray-200 rounded-full h-2.5">
                           <div 
-                            className="h-2.5 rounded-full bg-blue-600" 
-                            style={{ width: `${item.percentage}%` }}
+                            className="h-2.5 rounded-full"
+                            style={{ 
+                              width: `${item.percentage}%`,
+                              backgroundColor: COLORS[index % COLORS.length]
+                            }}
                           ></div>
                         </div>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
           </CardContent>
         </Card>
@@ -271,58 +311,54 @@ const Analytics = () => {
             <CardTitle className="text-lg font-medium text-gray-800">Monthly Performance</CardTitle>
           </CardHeader>
           <CardContent className="p-6">
-            <div className="mb-6">
-              {/* This would be a chart in a real implementation */}
-              <div className="bg-gray-100 h-64 rounded-lg flex items-center justify-center">
-                <div className="text-center">
-                  <BarChart2 size={48} className="text-blue-500 mx-auto mb-3" />
-                  <p className="text-gray-500">Monthly Performance Chart</p>
-                </div>
-              </div>
+            <div className="mb-6 h-64">
+              <ChartContainer 
+                config={{ 
+                  revenue: { color: "#8B5CF6" },
+                  expenses: { color: "#F97316" },
+                  profit: { color: "#10B981" }
+                }}
+              >
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={profitLossSummary.monthlyComparison}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip 
+                      formatter={(value) => formatCurrency(value as number)}
+                      labelFormatter={(label) => `${label} 2025`}
+                    />
+                    <Legend />
+                    <Bar dataKey="revenue" name="Revenue" fill="#8B5CF6" />
+                    <Bar dataKey="expenses" name="Expenses" fill="#F97316" />
+                    <Bar dataKey="profit" name="Profit" fill="#10B981" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartContainer>
             </div>
             <div className="mt-4 overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Month
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Revenue
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Expenses
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Profit
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Margin
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Month</TableHead>
+                    <TableHead>Revenue</TableHead>
+                    <TableHead>Expenses</TableHead>
+                    <TableHead>Profit</TableHead>
+                    <TableHead>Margin</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {profitLossSummary.monthlyComparison.map((item, index) => (
-                    <tr key={index} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {item.month} 2025
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600 font-medium">
-                        {formatCurrency(item.revenue)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-medium">
-                        {formatCurrency(item.expenses)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-medium">
-                        {formatCurrency(item.profit)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatPercent((item.profit / item.revenue) * 100)}
-                      </td>
-                    </tr>
+                    <TableRow key={index}>
+                      <TableCell className="font-medium">{item.month} 2025</TableCell>
+                      <TableCell className="text-blue-600 font-medium">{formatCurrency(item.revenue)}</TableCell>
+                      <TableCell className="text-red-600 font-medium">{formatCurrency(item.expenses)}</TableCell>
+                      <TableCell className="text-green-600 font-medium">{formatCurrency(item.profit)}</TableCell>
+                      <TableCell>{formatPercent((item.profit / item.revenue) * 100)}</TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
           </CardContent>
         </Card>
@@ -334,6 +370,13 @@ const Analytics = () => {
   const renderCustomerAnalysis = () => {
     const { topCustomers } = reportsData;
     
+    // Prepare data for customer bar chart
+    const customerChartData = topCustomers.map(c => ({
+      name: c.name.split(' ').slice(0, 2).join(' '), // Shorten names for display
+      revenue: c.revenue,
+      transactions: c.transactions
+    }));
+    
     return (
       <div className="space-y-6">
         <Card>
@@ -341,58 +384,54 @@ const Analytics = () => {
             <CardTitle className="text-lg font-medium text-gray-800">Top Customers by Revenue</CardTitle>
           </CardHeader>
           <CardContent className="p-6">
-            <div className="mb-6">
-              {/* This would be a chart in a real implementation */}
-              <div className="bg-gray-100 h-64 rounded-lg flex items-center justify-center">
-                <div className="text-center">
-                  <BarChart2 size={48} className="text-blue-500 mx-auto mb-3" />
-                  <p className="text-gray-500">Customer Revenue Chart</p>
-                </div>
-              </div>
+            <div className="mb-6 h-64">
+              <ChartContainer 
+                config={{ 
+                  revenue: { color: "#8B5CF6" },
+                  transactions: { color: "#0EA5E9" }
+                }}
+              >
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={customerChartData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis yAxisId="left" orientation="left" stroke="#8B5CF6" />
+                    <YAxis yAxisId="right" orientation="right" stroke="#0EA5E9" />
+                    <Tooltip 
+                      formatter={(value, name) => {
+                        return name === 'revenue' ? 
+                          formatCurrency(value as number) : 
+                          value;
+                      }}
+                    />
+                    <Legend />
+                    <Bar yAxisId="left" dataKey="revenue" name="Revenue" fill="#8B5CF6" />
+                    <Bar yAxisId="right" dataKey="transactions" name="Transactions" fill="#0EA5E9" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartContainer>
             </div>
             <div className="mt-4 overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Customer Name
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Revenue
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Transactions
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Avg. Transaction
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Last Transaction
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      YoY Change
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Customer Name</TableHead>
+                    <TableHead>Revenue</TableHead>
+                    <TableHead>Transactions</TableHead>
+                    <TableHead>Avg. Transaction</TableHead>
+                    <TableHead>Last Transaction</TableHead>
+                    <TableHead>YoY Change</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {topCustomers.map((customer, index) => (
-                    <tr key={index} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {customer.name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                        {formatCurrency(customer.revenue)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {customer.transactions}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatCurrency(customer.avgValue)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {customer.recentTransaction}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <TableRow key={index}>
+                      <TableCell className="font-medium">{customer.name}</TableCell>
+                      <TableCell className="font-medium">{formatCurrency(customer.revenue)}</TableCell>
+                      <TableCell>{customer.transactions}</TableCell>
+                      <TableCell>{formatCurrency(customer.avgValue)}</TableCell>
+                      <TableCell>{customer.recentTransaction}</TableCell>
+                      <TableCell>
                         <span className={`inline-flex items-center ${
                           customer.change.startsWith('+') ? 'text-green-600' : 'text-red-600'
                         }`}>
@@ -402,11 +441,11 @@ const Analytics = () => {
                           }
                           {customer.change}
                         </span>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
           </CardContent>
         </Card>
@@ -417,18 +456,57 @@ const Analytics = () => {
           </CardHeader>
           <CardContent className="p-6">
             <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* These would be charts in a real implementation */}
-              <div className="bg-gray-100 h-64 rounded-lg flex items-center justify-center">
-                <div className="text-center">
-                  <PieChart size={48} className="text-blue-500 mx-auto mb-3" />
-                  <p className="text-gray-500">Customer Acquisition Chart</p>
-                </div>
+              {/* Customer Acquisition Chart */}
+              <div className="h-64">
+                <ChartContainer config={{ acquisition: { color: "#8B5CF6" } }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={[
+                      { month: 'Jan', new: 8, retained: 85 },
+                      { month: 'Feb', new: 10, retained: 87 },
+                      { month: 'Mar', new: 8, retained: 89 },
+                      { month: 'Apr', new: 12, retained: 92 },
+                    ]}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Line
+                        type="monotone"
+                        dataKey="new"
+                        name="New Customers"
+                        stroke="#8B5CF6"
+                        activeDot={{ r: 8 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
               </div>
-              <div className="bg-gray-100 h-64 rounded-lg flex items-center justify-center">
-                <div className="text-center">
-                  <PieChart size={48} className="text-green-500 mx-auto mb-3" />
-                  <p className="text-gray-500">Customer Retention Chart</p>
-                </div>
+              {/* Customer Retention Chart */}
+              <div className="h-64">
+                <ChartContainer config={{ retention: { color: "#10B981" } }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={[
+                      { month: 'Jan', new: 8, retained: 85 },
+                      { month: 'Feb', new: 10, retained: 87 },
+                      { month: 'Mar', new: 8, retained: 89 },
+                      { month: 'Apr', new: 12, retained: 92 },
+                    ]}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Line
+                        type="monotone"
+                        dataKey="retained"
+                        name="Retention %"
+                        stroke="#10B981"
+                        activeDot={{ r: 8 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -486,48 +564,26 @@ const Analytics = () => {
           </div>
           
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Report Name
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Type
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Last Run
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Schedule
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Format
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Report Name</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Last Run</TableHead>
+                  <TableHead>Schedule</TableHead>
+                  <TableHead>Format</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {savedReports.map((report) => (
-                  <tr key={report.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
-                      {report.name}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {report.type}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {report.lastRun}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {report.schedule}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <Badge variant="neutral">{report.format}</Badge>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 space-x-2">
+                  <TableRow key={report.id}>
+                    <TableCell className="font-medium text-blue-600">{report.name}</TableCell>
+                    <TableCell>{report.type}</TableCell>
+                    <TableCell>{report.lastRun}</TableCell>
+                    <TableCell>{report.schedule}</TableCell>
+                    <TableCell><Badge variant="neutral">{report.format}</Badge></TableCell>
+                    <TableCell className="space-x-2">
                       <button className="text-blue-600 hover:text-blue-900" aria-label="Run Report">
                         <RefreshCw className="h-4 w-4 inline-block" />
                       </button>
@@ -540,11 +596,11 @@ const Analytics = () => {
                       <button className="text-gray-600 hover:text-gray-900" aria-label="Copy Report Link">
                         <Clipboard className="h-4 w-4 inline-block" />
                       </button>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </Card>
         
@@ -554,12 +610,26 @@ const Analytics = () => {
           </CardHeader>
           <CardContent className="p-6">
             <div className="mb-6">
-              {/* This would be a calendar in a real implementation */}
-              <div className="bg-gray-100 h-64 rounded-lg flex items-center justify-center">
-                <div className="text-center">
-                  <Calendar size={48} className="text-blue-500 mx-auto mb-3" />
-                  <p className="text-gray-500">Report Schedule Calendar</p>
-                </div>
+              {/* Monthly report schedule visualization */}
+              <div className="h-64">
+                <ChartContainer config={{ scheduled: { color: "#8B5CF6" } }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={[
+                      { day: '1', reports: 2 },
+                      { day: '7', reports: 5 },
+                      { day: '15', reports: 3 },
+                      { day: '22', reports: 1 },
+                      { day: '30', reports: 4 },
+                    ]}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="day" label={{ value: 'Day of Month', position: 'insideBottom', offset: -5 }} />
+                      <YAxis label={{ value: 'Scheduled Reports', angle: -90, position: 'insideLeft' }} />
+                      <Tooltip />
+                      <Legend />
+                      <Bar dataKey="reports" name="Scheduled Reports" fill="#8B5CF6" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
               </div>
             </div>
             <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
