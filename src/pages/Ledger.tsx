@@ -353,6 +353,59 @@ const Ledger = () => {
     return category.type === filterType;
   });
   
+  // Get period account balances for closing balances detail view
+  const getPeriodAccountBalances = (periodName) => {
+    // This is a mock function that would normally fetch data from an API
+    // For now, we'll return mock data based on the period name
+    return [
+      {
+        categoryName: "Assets",
+        accounts: [
+          { code: "10100", name: "Cash", closingBalance: 124675.50 },
+          { code: "10200", name: "Accounts Receivable", closingBalance: 67890.25 },
+          { code: "10300", name: "Bank Deposits", closingBalance: 225000.00 },
+          { code: "10400", name: "Travel Inventory", closingBalance: 18450.00 }
+        ]
+      },
+      {
+        categoryName: "Liabilities",
+        accounts: [
+          { code: "20100", name: "Accounts Payable", closingBalance: 45670.80 },
+          { code: "20200", name: "Credit Cards", closingBalance: 3450.75 },
+          { code: "20300", name: "Travel Supplier Payables", closingBalance: 86750.00 }
+        ]
+      },
+      {
+        categoryName: "Equity",
+        accounts: [
+          { code: "30100", name: "Owner's Capital", closingBalance: 150000.00 },
+          { code: "30200", name: "Retained Earnings", closingBalance: 78500.00 }
+        ]
+      },
+      {
+        categoryName: "Revenue",
+        accounts: [
+          { code: "40100", name: "Flight Bookings Revenue", closingBalance: 145780.25 },
+          { code: "40200", name: "Hotel Bookings Revenue", closingBalance: 78920.00 },
+          { code: "40300", name: "Package Tours Revenue", closingBalance: 45780.75 },
+          { code: "40400", name: "Insurance Sales Revenue", closingBalance: 8450.00 },
+          { code: "40500", name: "Markup Revenue", closingBalance: 23450.50 }
+        ]
+      },
+      {
+        categoryName: "Expenses",
+        accounts: [
+          { code: "50100", name: "Flight Booking Costs", closingBalance: 126240.00 },
+          { code: "50200", name: "Hotel Booking Costs", closingBalance: 68980.00 },
+          { code: "50300", name: "Package Tour Costs", closingBalance: 38760.25 },
+          { code: "50400", name: "Payment Processing Fees", closingBalance: 4250.50 },
+          { code: "50500", name: "Staff Salaries", closingBalance: 32500.00 },
+          { code: "50600", name: "Office Rent", closingBalance: 4800.00 }
+        ]
+      }
+    ];
+  };
+  
   // Render Chart of Accounts
   const renderChartOfAccounts = () => {
     return (
