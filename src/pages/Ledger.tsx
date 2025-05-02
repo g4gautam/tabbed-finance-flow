@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   Book, Search, Filter, Plus, Edit, Trash2, 
   ChevronDown, Download, RefreshCw, Eye, FileText, 
-  Calendar, Table as TableIcon
+  Calendar, Table as TableIcon, Check, CheckCheck
 } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -35,6 +35,9 @@ const Ledger = () => {
   const [showNewEntryModal, setShowNewEntryModal] = useState(false);
   const [showClosingBalanceDetails, setShowClosingBalanceDetails] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState<string | null>(null);
+  const [showStartReconciliationModal, setShowStartReconciliationModal] = useState(false);
+  const [selectedReconciliation, setSelectedReconciliation] = useState<number | null>(null);
+  const [showReconciliationDetails, setShowReconciliationDetails] = useState(false);
   
   // Sample account data
   const accountData = {
@@ -208,56 +211,124 @@ const Ledger = () => {
     }
   ];
 
-  // Sample period account balances for details modal
-  const getPeriodAccountBalances = (period: string) => {
-    return [
-      {
-        categoryName: "Assets",
-        accounts: [
-          { code: '10100', name: 'Cash', closingBalance: 124675.50 },
-          { code: '10200', name: 'Accounts Receivable', closingBalance: 67890.25 },
-          { code: '10300', name: 'Bank Deposits', closingBalance: 225000.00 },
-          { code: '10400', name: 'Travel Inventory', closingBalance: 18450.00 }
-        ]
-      },
-      {
-        categoryName: "Liabilities",
-        accounts: [
-          { code: '20100', name: 'Accounts Payable', closingBalance: 45670.80 },
-          { code: '20200', name: 'Credit Cards', closingBalance: 3450.75 },
-          { code: '20300', name: 'Travel Supplier Payables', closingBalance: 86750.00 }
-        ]
-      },
-      {
-        categoryName: "Equity",
-        accounts: [
-          { code: '30100', name: 'Owner\'s Capital', closingBalance: 150000.00 },
-          { code: '30200', name: 'Retained Earnings', closingBalance: 78500.00 }
-        ]
-      },
-      {
-        categoryName: "Revenue",
-        accounts: [
-          { code: '40100', name: 'Flight Bookings Revenue', closingBalance: 145780.25 },
-          { code: '40200', name: 'Hotel Bookings Revenue', closingBalance: 78920.00 },
-          { code: '40300', name: 'Package Tours Revenue', closingBalance: 45780.75 },
-          { code: '40400', name: 'Insurance Sales Revenue', closingBalance: 8450.00 },
-          { code: '40500', name: 'Markup Revenue', closingBalance: 23450.50 }
-        ]
-      },
-      {
-        categoryName: "Expenses",
-        accounts: [
-          { code: '50100', name: 'Flight Booking Costs', closingBalance: 126240.00 },
-          { code: '50200', name: 'Hotel Booking Costs', closingBalance: 68980.00 },
-          { code: '50300', name: 'Package Tour Costs', closingBalance: 38760.25 },
-          { code: '50400', name: 'Payment Processing Fees', closingBalance: 4250.50 },
-          { code: '50500', name: 'Staff Salaries', closingBalance: 32500.00 },
-          { code: '50600', name: 'Office Rent', closingBalance: 4800.00 }
-        ]
-      }
-    ];
-  };
+  // Sample bank reconciliation data
+  const bankReconciliationData = [
+    {
+      id: 1,
+      accountName: "Main Business Checking",
+      accountNumber: "****5678",
+      bankBalance: 124675.50,
+      bookBalance: 123200.25,
+      startDate: "2025-05-01",
+      endDate: "2025-05-31",
+      status: "In Progress",
+      difference: 1475.25,
+      lastReconciled: "2025-04-30"
+    },
+    {
+      id: 2,
+      accountName: "Business Savings",
+      accountNumber: "****9012",
+      bankBalance: 225000.00,
+      bookBalance: 225000.00,
+      startDate: "2025-05-01",
+      endDate: "2025-05-31",
+      status: "Reconciled",
+      difference: 0.00,
+      lastReconciled: "2025-05-15"
+    },
+    {
+      id: 3,
+      accountName: "Travel Expenses Account",
+      accountNumber: "****3456",
+      bankBalance: 18450.00,
+      bookBalance: 17800.75,
+      startDate: "2025-05-01",
+      endDate: "2025-05-31",
+      status: "In Progress",
+      difference: 649.25,
+      lastReconciled: "2025-04-30"
+    },
+    {
+      id: 4,
+      accountName: "Credit Card Processing",
+      accountNumber: "****7890",
+      bankBalance: 34520.75,
+      bookBalance: 34520.75,
+      startDate: "2025-04-01",
+      endDate: "2025-04-30",
+      status: "Reconciled",
+      difference: 0.00,
+      lastReconciled: "2025-04-30"
+    }
+  ];
+
+  // Sample reconciliation transactions
+  const reconciliationTransactions = [
+    {
+      id: 101,
+      date: "2025-05-05",
+      description: "Client payment - ABC Travel",
+      amount: 750.00,
+      type: "Credit",
+      matchStatus: "Matched",
+      category: "Sales"
+    },
+    {
+      id: 102,
+      date: "2025-05-07",
+      description: "Flight booking commission",
+      amount: 125.25,
+      type: "Credit",
+      matchStatus: "Matched",
+      category: "Commission Revenue"
+    },
+    {
+      id: 103,
+      date: "2025-05-10",
+      description: "Bank service fee",
+      amount: 25.00,
+      type: "Debit",
+      matchStatus: "Unmatched",
+      category: "Bank Charges"
+    },
+    {
+      id: 104,
+      date: "2025-05-12",
+      description: "Supplier payment - XYZ Hotels",
+      amount: 450.00,
+      type: "Debit",
+      matchStatus: "Matched",
+      category: "Supplier Payments"
+    },
+    {
+      id: 105,
+      date: "2025-05-15",
+      description: "Unknown deposit",
+      amount: 1200.00,
+      type: "Credit",
+      matchStatus: "Unmatched",
+      category: "Uncategorized"
+    },
+    {
+      id: 106,
+      date: "2025-05-18",
+      description: "Client payment - Smith Family",
+      amount: 1600.00,
+      type: "Credit",
+      matchStatus: "Matched",
+      category: "Sales"
+    },
+    {
+      id: 107,
+      date: "2025-05-20",
+      description: "Office supplies",
+      amount: 125.00,
+      type: "Debit",
+      matchStatus: "Matched",
+      category: "Office Expenses"
+    }
+  ];
   
   // Format currency
   const formatCurrency = (amount, currency = 'USD') => {
@@ -464,15 +535,265 @@ const Ledger = () => {
   // Render Account Reconciliation tab
   const renderAccountReconciliation = () => {
     return (
-      <Card className="p-6">
-        <div className="text-center py-12">
-          <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Account Reconciliation</h3>
-          <p className="text-gray-500 mb-4">Compare your bank statements with your accounting records</p>
-          <Button className="flex items-center gap-2 mx-auto">
-            <Plus className="h-4 w-4" /> Start Reconciliation
-          </Button>
+      <Card>
+        <div className="p-4 flex flex-wrap items-center justify-between border-b">
+          <div className="flex items-center">
+            <h3 className="text-lg font-medium">Account Reconciliation</h3>
+          </div>
+          
+          <div className="flex items-center space-x-3">
+            <Button variant="outline" className="flex items-center gap-2">
+              <Filter className="h-4 w-4" /> Filter
+            </Button>
+            <Button onClick={() => setShowStartReconciliationModal(true)} className="flex items-center gap-2">
+              <Plus className="h-4 w-4" /> Start Reconciliation
+            </Button>
+            <Button variant="outline" className="flex items-center gap-2">
+              <Download className="h-4 w-4" /> Export
+            </Button>
+          </div>
         </div>
+        
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Account Name</TableHead>
+                <TableHead>Account Number</TableHead>
+                <TableHead>Bank Balance</TableHead>
+                <TableHead>Book Balance</TableHead>
+                <TableHead>Difference</TableHead>
+                <TableHead>Start Date</TableHead>
+                <TableHead>End Date</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Last Reconciled</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {bankReconciliationData.map((account) => (
+                <TableRow key={account.id} className="hover:bg-muted/50">
+                  <TableCell className="font-medium">{account.accountName}</TableCell>
+                  <TableCell>{account.accountNumber}</TableCell>
+                  <TableCell>{formatCurrency(account.bankBalance)}</TableCell>
+                  <TableCell>{formatCurrency(account.bookBalance)}</TableCell>
+                  <TableCell className={account.difference > 0 ? "text-red-600" : "text-green-600"}>
+                    {formatCurrency(account.difference)}
+                  </TableCell>
+                  <TableCell>{account.startDate}</TableCell>
+                  <TableCell>{account.endDate}</TableCell>
+                  <TableCell>
+                    <Badge variant={account.status === "Reconciled" ? "success" : "pending"}>
+                      {account.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{account.lastReconciled}</TableCell>
+                  <TableCell className="space-x-2">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="text-blue-600 hover:text-blue-900"
+                      onClick={() => {
+                        setSelectedReconciliation(account.id);
+                        setShowReconciliationDetails(true);
+                      }}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="text-indigo-600 hover:text-indigo-900">
+                      <CheckCheck className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="text-indigo-600 hover:text-indigo-900">
+                      <TableIcon className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* Start Reconciliation Modal */}
+        {showStartReconciliationModal && (
+          <Dialog open={showStartReconciliationModal} onOpenChange={setShowStartReconciliationModal}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Start New Reconciliation</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 py-2">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Select Account
+                  </label>
+                  <select className="w-full p-2 border border-gray-300 rounded-md">
+                    <option value="">-- Select an account --</option>
+                    <option value="1">Main Business Checking</option>
+                    <option value="2">Business Savings</option>
+                    <option value="3">Travel Expenses Account</option>
+                    <option value="4">Credit Card Processing</option>
+                  </select>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Start Date
+                    </label>
+                    <input 
+                      type="date" 
+                      className="w-full p-2 border border-gray-300 rounded-md"
+                      defaultValue="2025-06-01"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      End Date
+                    </label>
+                    <input 
+                      type="date" 
+                      className="w-full p-2 border border-gray-300 rounded-md"
+                      defaultValue="2025-06-30"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Ending Balance (from bank statement)
+                  </label>
+                  <input 
+                    type="number" 
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowStartReconciliationModal(false)}>
+                  Cancel
+                </Button>
+                <Button>
+                  Start Reconciliation
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
+
+        {/* Reconciliation Details Modal */}
+        {showReconciliationDetails && selectedReconciliation && (
+          <Dialog open={showReconciliationDetails} onOpenChange={setShowReconciliationDetails}>
+            <DialogContent className="max-w-4xl">
+              <DialogHeader>
+                <DialogTitle>
+                  Reconciliation Details - {bankReconciliationData.find(a => a.id === selectedReconciliation)?.accountName}
+                </DialogTitle>
+              </DialogHeader>
+              <div className="grid grid-cols-3 gap-6 mb-6">
+                <div className="p-4 border rounded-md">
+                  <h4 className="text-sm font-semibold text-gray-500 mb-1">Bank Balance</h4>
+                  <p className="text-lg font-medium">
+                    {formatCurrency(bankReconciliationData.find(a => a.id === selectedReconciliation)?.bankBalance || 0)}
+                  </p>
+                </div>
+                <div className="p-4 border rounded-md">
+                  <h4 className="text-sm font-semibold text-gray-500 mb-1">Book Balance</h4>
+                  <p className="text-lg font-medium">
+                    {formatCurrency(bankReconciliationData.find(a => a.id === selectedReconciliation)?.bookBalance || 0)}
+                  </p>
+                </div>
+                <div className="p-4 border rounded-md">
+                  <h4 className="text-sm font-semibold text-gray-500 mb-1">Difference</h4>
+                  <p className={`text-lg font-medium ${(bankReconciliationData.find(a => a.id === selectedReconciliation)?.difference || 0) > 0 ? "text-red-600" : "text-green-600"}`}>
+                    {formatCurrency(bankReconciliationData.find(a => a.id === selectedReconciliation)?.difference || 0)}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="mb-6">
+                <h4 className="text-md font-medium mb-3">Transactions</h4>
+                <div className="flex justify-between mb-3">
+                  <div className="flex items-center">
+                    <div className="relative flex-grow max-w-xs">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Search className="h-4 w-4 text-gray-400" />
+                      </div>
+                      <input 
+                        type="text" 
+                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        placeholder="Search transactions..."
+                      />
+                    </div>
+                  </div>
+                  <Button variant="outline" className="flex items-center gap-2">
+                    <Filter className="h-4 w-4" /> Filter
+                  </Button>
+                </div>
+                
+                <div className="overflow-y-auto max-h-[300px] border rounded-md">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-8">
+                          <div className="flex items-center justify-center">
+                            <input type="checkbox" className="w-4 h-4 rounded" />
+                          </div>
+                        </TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Category</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {reconciliationTransactions.map((transaction) => (
+                        <TableRow key={transaction.id} className="hover:bg-muted/50">
+                          <TableCell>
+                            <div className="flex items-center justify-center">
+                              <input type="checkbox" className="w-4 h-4 rounded" />
+                            </div>
+                          </TableCell>
+                          <TableCell>{transaction.date}</TableCell>
+                          <TableCell>{transaction.description}</TableCell>
+                          <TableCell>{transaction.type}</TableCell>
+                          <TableCell className={transaction.type === "Credit" ? "text-green-600" : "text-red-600"}>
+                            {formatCurrency(transaction.amount)}
+                          </TableCell>
+                          <TableCell>{transaction.category}</TableCell>
+                          <TableCell>
+                            <Badge variant={transaction.matchStatus === "Matched" ? "success" : "warning"}>
+                              {transaction.matchStatus}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Button variant="ghost" size="icon" className="text-blue-600 hover:text-blue-900">
+                              <Check className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+              
+              <DialogFooter>
+                <div className="flex justify-between w-full">
+                  <Button variant="outline" onClick={() => setShowReconciliationDetails(false)}>
+                    Close
+                  </Button>
+                  <div className="space-x-2">
+                    <Button variant="outline">Save Progress</Button>
+                    <Button>Complete Reconciliation</Button>
+                  </div>
+                </div>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
       </Card>
     );
   };
