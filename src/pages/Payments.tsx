@@ -14,11 +14,16 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@radix-ui/react-radio-group';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 
 const Payments = () => {
   const [activeTab, setActiveTab] = useState('paymentCapture');
   const [paymentMethod, setPaymentMethod] = useState('creditCard');
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showReceiptModal, setShowReceiptModal] = useState(false);
+  const [selectedReceipt, setSelectedReceipt] = useState<any>(null);
+  const [selectedVerificationItem, setSelectedVerificationItem] = useState<any>(null);
   
   // Sample data
   const paymentData = {
@@ -142,6 +147,110 @@ const Payments = () => {
         processingFee: '0.0%',
         status: 'Active',
         supportedCurrencies: ['USD', 'EUR', 'GBP', 'JPY', 'AUD']
+      }
+    ],
+    verificationQueue: [
+      {
+        id: 'VRF-1001',
+        paymentId: 'PMT-2501',
+        invoiceRef: 'INV-3487',
+        customer: 'Business Travel International',
+        amount: 2450.75,
+        method: 'Credit Card',
+        dateSubmitted: '2025-05-02',
+        status: 'Pending',
+        issues: null
+      },
+      {
+        id: 'VRF-1002',
+        paymentId: 'PMT-2502',
+        invoiceRef: 'INV-3485',
+        customer: 'Holiday Planners',
+        amount: 1785.25,
+        method: 'Bank Transfer',
+        dateSubmitted: '2025-05-02',
+        status: 'Pending',
+        issues: null
+      },
+      {
+        id: 'VRF-1003',
+        paymentId: 'PMT-2505',
+        invoiceRef: 'INV-3490',
+        customer: 'Mountain Expeditions',
+        amount: 3750.00,
+        method: 'Credit Card',
+        dateSubmitted: '2025-05-01',
+        status: 'Issue',
+        issues: 'Invalid card authorization code'
+      },
+      {
+        id: 'VRF-1004',
+        paymentId: 'PMT-2506',
+        invoiceRef: 'INV-3491',
+        customer: 'Ocean Cruises',
+        amount: 5200.50,
+        method: 'Bank Transfer',
+        dateSubmitted: '2025-05-01',
+        status: 'Issue',
+        issues: 'Reference number mismatch'
+      }
+    ],
+    receipts: [
+      {
+        id: 'RCP-1248',
+        paymentId: 'PMT-2498',
+        invoiceRef: 'INV-3478',
+        customer: 'Business Travel International',
+        amount: 1850.00,
+        date: '2025-05-01',
+        method: 'Credit Card',
+        cardLast4: '4242',
+        cardType: 'Visa',
+        authorizationCode: 'AUTH123456',
+        bankReference: null,
+        receiptSent: true
+      },
+      {
+        id: 'RCP-1247',
+        paymentId: 'PMT-2499',
+        invoiceRef: 'INV-3477',
+        customer: 'Luxury Vacations',
+        amount: 3675.00,
+        date: '2025-04-30',
+        method: 'Bank Transfer',
+        cardLast4: null,
+        cardType: null,
+        authorizationCode: null,
+        bankReference: 'BTRFS29384756',
+        receiptSent: true
+      },
+      {
+        id: 'RCP-1246',
+        paymentId: 'PMT-2500',
+        invoiceRef: 'INV-3475',
+        customer: 'Adventure Tours',
+        amount: 2250.25,
+        date: '2025-04-29',
+        method: 'PayPal',
+        cardLast4: null,
+        cardType: null,
+        authorizationCode: 'PP383752991',
+        bankReference: null,
+        receiptSent: false
+      },
+      {
+        id: 'RCP-1245',
+        paymentId: 'PMT-2497',
+        invoiceRef: 'INV-3474',
+        customer: 'Family Getaways',
+        amount: 1950.75,
+        date: '2025-04-28',
+        method: 'Credit Card',
+        cardLast4: '1234',
+        cardType: 'MasterCard',
+        authorizationCode: 'AUTH654321',
+        bankReference: null,
+        receiptSent: true
       }
     ]
   };
@@ -276,6 +385,331 @@ const Payments = () => {
             </Table>
           </CardContent>
         </Card>
+      </div>
+    );
+  };
+  
+  // Render Payment Verification Tab
+  const renderPaymentVerification = () => {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <div className="space-y-1">
+              <CardTitle>Payment Verification Queue</CardTitle>
+              <CardDescription>Payments requiring verification before processing</CardDescription>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input 
+                  type="search" 
+                  placeholder="Search verifications..." 
+                  className="w-[200px] pl-8 md:w-[300px]"
+                />
+              </div>
+              <Button variant="outline" size="sm">
+                <Filter className="mr-2 h-4 w-4" />
+                Filter
+              </Button>
+              <Button variant="outline" size="sm">
+                <Download className="mr-2 h-4 w-4" />
+                Export
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Verification ID</TableHead>
+                  <TableHead>Payment ID</TableHead>
+                  <TableHead>Invoice</TableHead>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Method</TableHead>
+                  <TableHead>Date Submitted</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paymentData.verificationQueue.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell className="font-medium">{item.id}</TableCell>
+                    <TableCell className="text-blue-600">{item.paymentId}</TableCell>
+                    <TableCell>{item.invoiceRef}</TableCell>
+                    <TableCell>{item.customer}</TableCell>
+                    <TableCell className="font-medium">{formatCurrency(item.amount)}</TableCell>
+                    <TableCell>{item.method}</TableCell>
+                    <TableCell>{item.dateSubmitted}</TableCell>
+                    <TableCell>
+                      <Badge variant={item.status === 'Issue' ? "destructive" : "outline"}>
+                        {item.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Button 
+                        size="sm" 
+                        onClick={() => setSelectedVerificationItem(item)}
+                        className={item.status === 'Issue' ? "bg-red-600 hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700"}
+                      >
+                        {item.status === 'Issue' ? 'Resolve Issue' : 'Verify'}
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+        
+        {selectedVerificationItem && (
+          <Dialog open={!!selectedVerificationItem} onOpenChange={() => setSelectedVerificationItem(null)}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>{selectedVerificationItem.status === 'Issue' ? 'Resolve Verification Issue' : 'Verify Payment'}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm text-muted-foreground">Verification ID</Label>
+                    <p className="font-medium">{selectedVerificationItem.id}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm text-muted-foreground">Payment ID</Label>
+                    <p className="font-medium text-blue-600">{selectedVerificationItem.paymentId}</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <Label className="text-sm text-muted-foreground">Customer</Label>
+                  <p className="font-medium">{selectedVerificationItem.customer}</p>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm text-muted-foreground">Amount</Label>
+                    <p className="font-medium">{formatCurrency(selectedVerificationItem.amount)}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm text-muted-foreground">Payment Method</Label>
+                    <p className="font-medium">{selectedVerificationItem.method}</p>
+                  </div>
+                </div>
+                
+                {selectedVerificationItem.status === 'Issue' && (
+                  <div>
+                    <Label className="text-sm text-muted-foreground">Issue Description</Label>
+                    <p className="text-red-600">{selectedVerificationItem.issues}</p>
+                  </div>
+                )}
+                
+                <div>
+                  <Label htmlFor="verification-notes">Verification Notes</Label>
+                  <textarea
+                    id="verification-notes"
+                    className="mt-1 block w-full rounded-md border border-input px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    rows={3}
+                    placeholder="Add notes about this verification..."
+                  ></textarea>
+                </div>
+              </div>
+              <DialogFooter className="sm:justify-start">
+                <div className="w-full flex justify-between">
+                  <Button variant="outline" onClick={() => setSelectedVerificationItem(null)}>Cancel</Button>
+                  <div className="space-x-2">
+                    {selectedVerificationItem.status === 'Issue' && (
+                      <Button variant="destructive">
+                        Reject Payment
+                      </Button>
+                    )}
+                    <Button onClick={() => setSelectedVerificationItem(null)}>
+                      {selectedVerificationItem.status === 'Issue' ? 'Mark as Resolved' : 'Approve Payment'}
+                    </Button>
+                  </div>
+                </div>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
+      </div>
+    );
+  };
+
+  // Render Payment Receipts Tab
+  const renderPaymentReceipts = () => {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <div className="space-y-1">
+              <CardTitle>Payment Receipts</CardTitle>
+              <CardDescription>View and manage payment receipts</CardDescription>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input 
+                  type="search" 
+                  placeholder="Search receipts..." 
+                  className="w-[200px] pl-8 md:w-[300px]"
+                />
+              </div>
+              <Button variant="outline" size="sm">
+                <Filter className="mr-2 h-4 w-4" />
+                Filter
+              </Button>
+              <Button variant="outline" size="sm">
+                <Download className="mr-2 h-4 w-4" />
+                Export
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Receipt ID</TableHead>
+                  <TableHead>Payment ID</TableHead>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Method</TableHead>
+                  <TableHead>Receipt Sent</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paymentData.receipts.map((receipt) => (
+                  <TableRow key={receipt.id}>
+                    <TableCell className="font-medium text-blue-600">{receipt.id}</TableCell>
+                    <TableCell>{receipt.paymentId}</TableCell>
+                    <TableCell>{receipt.customer}</TableCell>
+                    <TableCell className="font-medium">{formatCurrency(receipt.amount)}</TableCell>
+                    <TableCell>{receipt.date}</TableCell>
+                    <TableCell>{receipt.method}</TableCell>
+                    <TableCell>
+                      {receipt.receiptSent ? (
+                        <Badge variant="success" className="bg-green-100 text-green-800 hover:bg-green-100">
+                          <CheckCircle className="mr-1 h-3 w-3" /> Sent
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
+                          Pending
+                        </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-2">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-blue-600"
+                          onClick={() => {
+                            setSelectedReceipt(receipt);
+                            setShowReceiptModal(true);
+                          }}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600">
+                          <Printer className="h-4 w-4" />
+                        </Button>
+                        {!receipt.receiptSent && (
+                          <Button variant="outline" size="sm" className="h-7 text-xs">
+                            Send Receipt
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+        
+        {/* Receipt Modal */}
+        {showReceiptModal && selectedReceipt && (
+          <Dialog open={showReceiptModal} onOpenChange={setShowReceiptModal}>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>Receipt Details</DialogTitle>
+              </DialogHeader>
+              <div className="p-4 border rounded-md space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="text-2xl font-bold">Payment Receipt</div>
+                  <div className="text-sm text-gray-500">{selectedReceipt.date}</div>
+                </div>
+                
+                <div className="border-t border-b py-3 space-y-2">
+                  <div className="grid grid-cols-2">
+                    <div className="text-sm text-gray-500">Receipt ID:</div>
+                    <div className="font-medium">{selectedReceipt.id}</div>
+                  </div>
+                  <div className="grid grid-cols-2">
+                    <div className="text-sm text-gray-500">Payment ID:</div>
+                    <div className="font-medium">{selectedReceipt.paymentId}</div>
+                  </div>
+                  <div className="grid grid-cols-2">
+                    <div className="text-sm text-gray-500">Invoice:</div>
+                    <div className="font-medium">{selectedReceipt.invoiceRef}</div>
+                  </div>
+                </div>
+                
+                <div>
+                  <div className="text-sm text-gray-500">Customer:</div>
+                  <div className="font-medium">{selectedReceipt.customer}</div>
+                </div>
+                
+                <div className="border-t pt-3 space-y-2">
+                  <div className="grid grid-cols-2">
+                    <div className="text-sm text-gray-500">Payment Method:</div>
+                    <div className="font-medium">{selectedReceipt.method}</div>
+                  </div>
+                  
+                  {selectedReceipt.cardLast4 && (
+                    <div className="grid grid-cols-2">
+                      <div className="text-sm text-gray-500">Card Details:</div>
+                      <div className="font-medium">{selectedReceipt.cardType} ending in {selectedReceipt.cardLast4}</div>
+                    </div>
+                  )}
+                  
+                  {selectedReceipt.authorizationCode && (
+                    <div className="grid grid-cols-2">
+                      <div className="text-sm text-gray-500">Authorization Code:</div>
+                      <div className="font-medium">{selectedReceipt.authorizationCode}</div>
+                    </div>
+                  )}
+                  
+                  {selectedReceipt.bankReference && (
+                    <div className="grid grid-cols-2">
+                      <div className="text-sm text-gray-500">Bank Reference:</div>
+                      <div className="font-medium">{selectedReceipt.bankReference}</div>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="border-t pt-3">
+                  <div className="grid grid-cols-2">
+                    <div className="text-sm text-gray-500">Amount:</div>
+                    <div className="text-xl font-bold">{formatCurrency(selectedReceipt.amount)}</div>
+                  </div>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowReceiptModal(false)}>
+                  Close
+                </Button>
+                <Button onClick={() => setShowReceiptModal(false)}>
+                  <Printer className="mr-2 h-4 w-4" />
+                  Print Receipt
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
     );
   };
@@ -615,14 +1049,10 @@ const Payments = () => {
           {renderPaymentCapture()}
         </TabsContent>
         <TabsContent value="paymentVerification" className="mt-6">
-          <Card className="p-6">
-            <p className="text-center text-muted-foreground">Payment verification functionality will be implemented soon.</p>
-          </Card>
+          {renderPaymentVerification()}
         </TabsContent>
         <TabsContent value="paymentReceipts" className="mt-6">
-          <Card className="p-6">
-            <p className="text-center text-muted-foreground">Payment receipts functionality will be implemented soon.</p>
-          </Card>
+          {renderPaymentReceipts()}
         </TabsContent>
         <TabsContent value="paymentMethods" className="mt-6">
           {renderPaymentMethods()}
