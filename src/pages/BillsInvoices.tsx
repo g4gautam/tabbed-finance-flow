@@ -3,7 +3,8 @@ import {
   FileText, Search, Plus, ChevronDown, Filter, 
   Download, Printer, Mail, ExternalLink, 
   Clock, AlertTriangle, CheckCircle, RefreshCw,
-  Edit, Trash2, Eye, ArrowRight, Calendar
+  Edit, Trash2, Eye, ArrowRight, Calendar,
+  Pencil, Copy, LayoutTemplate, FileCheck, FileKey
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,10 +27,17 @@ const BillsInvoices = () => {
   const [activeTab, setActiveTab] = useState('invoices');
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [showCreditNoteModal, setShowCreditNoteModal] = useState(false);
+  const [showStatementModal, setShowStatementModal] = useState(false);
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
   const [creditNoteReason, setCreditNoteReason] = useState('');
   const [creditNoteAmount, setCreditNoteAmount] = useState('');
+  const [statementPeriod, setStatementPeriod] = useState('current-month');
+  const [templateName, setTemplateName] = useState('');
+  const [templateContent, setTemplateContent] = useState('');
+  const [templateType, setTemplateType] = useState('invoice');
   
   // Sample data
   const invoicingData = {
@@ -148,6 +156,88 @@ const BillsInvoices = () => {
       { id: 8, name: 'Airport Transfer Service', category: 'Services', unitPrice: 65.00 },
       { id: 9, name: 'Guided Tour Package', category: 'Tours', unitPrice: 850.00 },
       { id: 10, name: 'Visa Processing Fee', category: 'Services', unitPrice: 150.00 }
+    ],
+    templates: [
+      { 
+        id: 1, 
+        name: 'Standard Invoice', 
+        type: 'invoice',
+        lastModified: '2025-04-15',
+        isDefault: true,
+        content: '<div class="invoice-template">{{company_name}}<br>{{company_address}}<br>{{company_phone}}<br>{{company_email}}</div><div class="invoice-details">Invoice #: {{invoice_number}}<br>Date: {{invoice_date}}<br>Due Date: {{due_date}}</div><div class="customer-details">{{customer_name}}<br>{{customer_address}}<br>{{customer_email}}</div><table>{{line_items}}</table><div class="totals">Subtotal: {{subtotal}}<br>Tax: {{tax}}<br>Total: {{total}}</div>'
+      },
+      { 
+        id: 2, 
+        name: 'Deluxe Invoice', 
+        type: 'invoice',
+        lastModified: '2025-04-10',
+        isDefault: false,
+        content: '<div class="invoice-template deluxe">{{company_logo}}<br>{{company_name}}<br>{{company_address}}<br>{{company_phone}}<br>{{company_email}}</div><div class="invoice-details">Invoice #: {{invoice_number}}<br>Date: {{invoice_date}}<br>Due Date: {{due_date}}<br>Terms: {{payment_terms}}</div><div class="customer-details">{{customer_name}}<br>{{customer_address}}<br>{{customer_email}}<br>{{customer_phone}}</div><table class="deluxe-table">{{line_items}}</table><div class="totals">Subtotal: {{subtotal}}<br>Tax: {{tax}}<br>Total: {{total}}</div><div class="footer">Thank you for your business!</div>'
+      },
+      { 
+        id: 3, 
+        name: 'Standard Credit Note', 
+        type: 'credit-note',
+        lastModified: '2025-04-12',
+        isDefault: true,
+        content: '<div class="credit-note-template">{{company_name}}<br>{{company_address}}<br>{{company_phone}}<br>{{company_email}}</div><div class="credit-note-details">Credit Note #: {{credit_note_number}}<br>Date: {{credit_note_date}}<br>Reference Invoice: {{invoice_number}}</div><div class="customer-details">{{customer_name}}<br>{{customer_address}}<br>{{customer_email}}</div><div class="reason">Reason for Credit: {{reason}}</div><div class="totals">Amount: {{amount}}</div>'
+      },
+      { 
+        id: 4, 
+        name: 'Standard Statement', 
+        type: 'statement',
+        lastModified: '2025-04-14',
+        isDefault: true,
+        content: '<div class="statement-template">{{company_name}}<br>{{company_address}}<br>{{company_phone}}<br>{{company_email}}</div><div class="statement-details">Statement Period: {{statement_period}}<br>Date: {{statement_date}}</div><div class="customer-details">{{customer_name}}<br>{{customer_address}}<br>{{customer_email}}</div><table>{{transactions}}</table><div class="totals">Opening Balance: {{opening_balance}}<br>Closing Balance: {{closing_balance}}</div>'
+      }
+    ],
+    statements: [
+      {
+        id: 'STM-2025-05',
+        customer: 'Business Travel International',
+        period: 'May 2025',
+        generatedDate: '2025-05-01',
+        openingBalance: 1250.00,
+        closingBalance: 2850.75,
+        status: 'Generated',
+        transactions: [
+          { date: '2025-05-01', description: 'Opening Balance', amount: 1250.00, type: 'balance' },
+          { date: '2025-05-01', description: 'Invoice INV-3487', amount: 2450.75, type: 'invoice' },
+          { date: '2025-05-03', description: 'Payment Received', amount: -850.00, type: 'payment' },
+          { date: '2025-05-31', description: 'Closing Balance', amount: 2850.75, type: 'balance' }
+        ]
+      },
+      {
+        id: 'STM-2025-04',
+        customer: 'Luxury Vacations',
+        period: 'April 2025',
+        generatedDate: '2025-04-30',
+        openingBalance: 1875.50,
+        closingBalance: 0.00,
+        status: 'Generated',
+        transactions: [
+          { date: '2025-04-01', description: 'Opening Balance', amount: 1875.50, type: 'balance' },
+          { date: '2025-04-15', description: 'Payment Received', amount: -1875.50, type: 'payment' },
+          { date: '2025-04-30', description: 'Invoice INV-3486', amount: 3675.00, type: 'invoice' },
+          { date: '2025-04-30', description: 'Payment Received', amount: -3675.00, type: 'payment' },
+          { date: '2025-04-30', description: 'Closing Balance', amount: 0.00, type: 'balance' }
+        ]
+      },
+      {
+        id: 'STM-2025-04-HP',
+        customer: 'Holiday Planners',
+        period: 'April 2025',
+        generatedDate: '2025-04-28',
+        openingBalance: 560.25,
+        closingBalance: 1970.50,
+        status: 'Generated',
+        transactions: [
+          { date: '2025-04-01', description: 'Opening Balance', amount: 560.25, type: 'balance' },
+          { date: '2025-04-28', description: 'Invoice INV-3485', amount: 1785.25, type: 'invoice' },
+          { date: '2025-04-28', description: 'Payment Received', amount: -375.00, type: 'payment' },
+          { date: '2025-04-28', description: 'Closing Balance', amount: 1970.50, type: 'balance' }
+        ]
+      }
     ]
   };
   
@@ -215,6 +305,63 @@ const BillsInvoices = () => {
     setSelectedInvoice(null);
     setCreditNoteReason('');
     setCreditNoteAmount('');
+  };
+  
+  // Handle statement generation
+  const handleGenerateStatement = () => {
+    if (!selectedCustomer) {
+      toast({
+        title: "Error",
+        description: "Please select a customer",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // In a real application, this would generate a statement and save it
+    // For this demo, we'll just show a success message and close the modal
+    toast({
+      title: "Statement Generated",
+      description: `Statement for ${selectedCustomer.name} has been generated for the selected period.`,
+    });
+    
+    setShowStatementModal(false);
+    setSelectedCustomer(null);
+    setStatementPeriod('current-month');
+  };
+  
+  // Handle template saving
+  const handleSaveTemplate = () => {
+    if (!templateName) {
+      toast({
+        title: "Error",
+        description: "Please enter a template name",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!templateContent) {
+      toast({
+        title: "Error",
+        description: "Template content cannot be empty",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // In a real application, this would save the template to the database
+    // For this demo, we'll just show a success message and close the modal
+    toast({
+      title: "Template Saved",
+      description: `Template "${templateName}" has been saved successfully.`,
+    });
+    
+    setShowTemplateModal(false);
+    setTemplateName('');
+    setTemplateContent('');
+    setTemplateType('invoice');
+    setSelectedTemplate(null);
   };
   
   // Render Invoices Tab
@@ -369,14 +516,75 @@ const BillsInvoices = () => {
   // Render Statements Tab
   const renderStatements = () => {
     return (
-      <Card className="p-6">
-        <div className="text-center py-8">
-          <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-1">Statement Generation</h3>
-          <p className="text-gray-500 mb-6">Generate account statements for your customers</p>
-          <Button className="mx-auto flex items-center">
-            <Plus className="h-4 w-4 mr-2" /> Generate New Statement
-          </Button>
+      <Card>
+        <div className="p-4 flex flex-wrap items-center justify-between border-b">
+          <div className="flex items-center w-full md:w-auto mb-3 md:mb-0">
+            <div className="relative flex-grow md:max-w-xs">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-gray-400" />
+              </div>
+              <Input 
+                className="pl-10"
+                placeholder="Search statements..."
+              />
+            </div>
+          </div>
+          
+          <div className="flex items-center space-x-3">
+            <Button variant="outline" className="flex items-center">
+              <Filter className="h-4 w-4 mr-2" /> Filter
+            </Button>
+            <Button onClick={() => setShowStatementModal(true)} className="flex items-center">
+              <Plus className="h-4 w-4 mr-2" /> Generate Statement
+            </Button>
+            <Button variant="outline" className="flex items-center">
+              <Download className="h-4 w-4 mr-2" /> Export
+            </Button>
+          </div>
+        </div>
+        
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Statement #</TableHead>
+                <TableHead>Customer</TableHead>
+                <TableHead>Period</TableHead>
+                <TableHead>Generated Date</TableHead>
+                <TableHead>Opening Balance</TableHead>
+                <TableHead>Closing Balance</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {invoicingData.statements.map((statement) => (
+                <TableRow key={statement.id} className="hover:bg-gray-50">
+                  <TableCell className="font-medium text-blue-600">{statement.id}</TableCell>
+                  <TableCell>{statement.customer}</TableCell>
+                  <TableCell>{statement.period}</TableCell>
+                  <TableCell>{statement.generatedDate}</TableCell>
+                  <TableCell>{formatCurrency(statement.openingBalance)}</TableCell>
+                  <TableCell>{formatCurrency(statement.closingBalance)}</TableCell>
+                  <TableCell><Badge variant="success">{statement.status}</Badge></TableCell>
+                  <TableCell className="flex space-x-2">
+                    <Button variant="ghost" size="icon">
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon">
+                      <Printer className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon">
+                      <Mail className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon">
+                      <Download className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
       </Card>
     );
@@ -385,14 +593,93 @@ const BillsInvoices = () => {
   // Render Templates Tab
   const renderTemplates = () => {
     return (
-      <Card className="p-6">
-        <div className="text-center py-8">
-          <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-1">Document Templates</h3>
-          <p className="text-gray-500 mb-6">Manage templates for invoices, credit notes, and statements</p>
-          <Button className="mx-auto flex items-center">
-            <Eye className="h-4 w-4 mr-2" /> View Templates
-          </Button>
+      <Card>
+        <div className="p-4 flex flex-wrap items-center justify-between border-b">
+          <div className="flex items-center w-full md:w-auto mb-3 md:mb-0">
+            <div className="relative flex-grow md:max-w-xs">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-gray-400" />
+              </div>
+              <Input 
+                className="pl-10"
+                placeholder="Search templates..."
+              />
+            </div>
+          </div>
+          
+          <div className="flex items-center space-x-3">
+            <Select value={activeTab === 'templates' ? templateType : undefined} onValueChange={setTemplateType}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Template Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Templates</SelectItem>
+                <SelectItem value="invoice">Invoice Templates</SelectItem>
+                <SelectItem value="credit-note">Credit Note Templates</SelectItem>
+                <SelectItem value="statement">Statement Templates</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button onClick={() => {
+              setSelectedTemplate(null);
+              setTemplateName('');
+              setTemplateContent('');
+              setShowTemplateModal(true);
+            }} className="flex items-center">
+              <Plus className="h-4 w-4 mr-2" /> New Template
+            </Button>
+          </div>
+        </div>
+        
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Template Name</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Last Modified</TableHead>
+                <TableHead>Default</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {invoicingData.templates
+                .filter(template => templateType === 'all' || template.type === templateType)
+                .map((template) => (
+                <TableRow key={template.id} className="hover:bg-gray-50">
+                  <TableCell className="font-medium">{template.name}</TableCell>
+                  <TableCell>
+                    {template.type === 'invoice' && 'Invoice Template'}
+                    {template.type === 'credit-note' && 'Credit Note Template'}
+                    {template.type === 'statement' && 'Statement Template'}
+                  </TableCell>
+                  <TableCell>{template.lastModified}</TableCell>
+                  <TableCell>{template.isDefault && <Badge>Default</Badge>}</TableCell>
+                  <TableCell className="flex space-x-2">
+                    <Button variant="ghost" size="icon" onClick={() => {
+                      setSelectedTemplate(template);
+                      setTemplateName(template.name);
+                      setTemplateContent(template.content);
+                      setTemplateType(template.type);
+                      setShowTemplateModal(true);
+                    }}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon">
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon">
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    {!template.isDefault && (
+                      <Button variant="ghost" size="icon" className="text-red-600">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
       </Card>
     );
@@ -720,6 +1007,278 @@ const BillsInvoices = () => {
     );
   };
   
+  // Statement Generation Modal
+  const renderStatementModal = () => {
+    return (
+      <Dialog open={showStatementModal} onOpenChange={setShowStatementModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Generate Statement</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="customer" className="block text-sm font-medium text-gray-700 mb-1">
+                Customer
+              </label>
+              <Select 
+                onValueChange={(value) => {
+                  const customer = invoicingData.customers.find(c => c.id.toString() === value);
+                  setSelectedCustomer(customer);
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a customer" />
+                </SelectTrigger>
+                <SelectContent>
+                  {invoicingData.customers.map((customer) => (
+                    <SelectItem key={customer.id} value={customer.id.toString()}>
+                      {customer.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {selectedCustomer && (
+              <div className="bg-gray-50 p-4 rounded-md">
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Customer Details</h4>
+                <div className="space-y-1">
+                  <p className="text-sm">
+                    <span className="text-gray-600">Contact Person:</span> {selectedCustomer.contactPerson}
+                  </p>
+                  <p className="text-sm">
+                    <span className="text-gray-600">Email:</span> {selectedCustomer.email}
+                  </p>
+                  <p className="text-sm">
+                    <span className="text-gray-600">Phone:</span> {selectedCustomer.phone}
+                  </p>
+                </div>
+              </div>
+            )}
+            
+            <div>
+              <label htmlFor="statement-period" className="block text-sm font-medium text-gray-700 mb-1">
+                Statement Period
+              </label>
+              <Select 
+                value={statementPeriod}
+                onValueChange={setStatementPeriod}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="current-month">Current Month</SelectItem>
+                  <SelectItem value="previous-month">Previous Month</SelectItem>
+                  <SelectItem value="quarter-to-date">Quarter to Date</SelectItem>
+                  <SelectItem value="year-to-date">Year to Date</SelectItem>
+                  <SelectItem value="custom">Custom Period</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {statementPeriod === 'custom' && (
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="from-date" className="block text-sm font-medium text-gray-700 mb-1">
+                    From Date
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Calendar className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <Input
+                      id="from-date"
+                      type="date"
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label htmlFor="to-date" className="block text-sm font-medium text-gray-700 mb-1">
+                    To Date
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Calendar className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <Input
+                      id="to-date"
+                      type="date"
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            <div>
+              <label htmlFor="template" className="block text-sm font-medium text-gray-700 mb-1">
+                Statement Template
+              </label>
+              <Select defaultValue="default">
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="default">Default Statement Template</SelectItem>
+                  {invoicingData.templates
+                    .filter(template => template.type === 'statement')
+                    .map((template) => (
+                      <SelectItem key={template.id} value={template.id.toString()}>
+                        {template.name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <input type="checkbox" id="include-paid" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"/>
+              <label htmlFor="include-paid" className="text-sm text-gray-700">
+                Include fully paid invoices
+              </label>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <input type="checkbox" id="include-details" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"/>
+              <label htmlFor="include-details" className="text-sm text-gray-700">
+                Include transaction details
+              </label>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowStatementModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleGenerateStatement}>
+              Generate Statement
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+  
+  // Template Modal
+  const renderTemplateModal = () => {
+    return (
+      <Dialog open={showTemplateModal} onOpenChange={setShowTemplateModal}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>{selectedTemplate ? 'Edit Template' : 'Create New Template'}</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="template-name" className="block text-sm font-medium text-gray-700 mb-1">
+                Template Name
+              </label>
+              <Input
+                id="template-name"
+                value={templateName}
+                onChange={(e) => setTemplateName(e.target.value)}
+                placeholder="Enter a name for this template"
+              />
+            </div>
+            
+            <div>
+              <label htmlFor="template-type" className="block text-sm font-medium text-gray-700 mb-1">
+                Template Type
+              </label>
+              <Select 
+                value={templateType}
+                onValueChange={setTemplateType}
+                disabled={!!selectedTemplate}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="invoice">Invoice Template</SelectItem>
+                  <SelectItem value="credit-note">Credit Note Template</SelectItem>
+                  <SelectItem value="statement">Statement Template</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label htmlFor="template-content" className="block text-sm font-medium text-gray-700">
+                  Template HTML Content
+                </label>
+                <div className="flex space-x-2">
+                  <Button variant="outline" size="sm" className="text-xs">
+                    <FileCheck className="h-3 w-3 mr-1" /> Format
+                  </Button>
+                  <Button variant="outline" size="sm" className="text-xs">
+                    <Eye className="h-3 w-3 mr-1" /> Preview
+                  </Button>
+                </div>
+              </div>
+              <Textarea
+                id="template-content"
+                value={templateContent}
+                onChange={(e) => setTemplateContent(e.target.value)}
+                placeholder="Enter template HTML content with placeholders like {{company_name}}, {{invoice_number}}, etc."
+                rows={12}
+                className="font-mono text-sm"
+              />
+            </div>
+            
+            <div className="bg-gray-50 p-4 rounded-md">
+              <h4 className="text-sm font-medium text-gray-700 mb-2">Available Placeholders</h4>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-y-1 gap-x-4">
+                <div className="text-xs text-gray-600">&#123;&#123;company_name&#125;&#125;</div>
+                <div className="text-xs text-gray-600">&#123;&#123;company_address&#125;&#125;</div>
+                <div className="text-xs text-gray-600">&#123;&#123;company_phone&#125;&#125;</div>
+                <div className="text-xs text-gray-600">&#123;&#123;company_email&#125;&#125;</div>
+                <div className="text-xs text-gray-600">&#123;&#123;invoice_number&#125;&#125;</div>
+                <div className="text-xs text-gray-600">&#123;&#123;invoice_date&#125;&#125;</div>
+                <div className="text-xs text-gray-600">&#123;&#123;due_date&#125;&#125;</div>
+                <div className="text-xs text-gray-600">&#123;&#123;customer_name&#125;&#125;</div>
+                <div className="text-xs text-gray-600">&#123;&#123;customer_address&#125;&#125;</div>
+                <div className="text-xs text-gray-600">&#123;&#123;customer_email&#125;&#125;</div>
+                <div className="text-xs text-gray-600">&#123;&#123;subtotal&#125;&#125;</div>
+                <div className="text-xs text-gray-600">&#123;&#123;tax&#125;&#125;</div>
+                <div className="text-xs text-gray-600">&#123;&#123;total&#125;&#125;</div>
+                {templateType === 'statement' && (
+                  <>
+                    <div className="text-xs text-gray-600">&#123;&#123;statement_period&#125;&#125;</div>
+                    <div className="text-xs text-gray-600">&#123;&#123;opening_balance&#125;&#125;</div>
+                    <div className="text-xs text-gray-600">&#123;&#123;closing_balance&#125;&#125;</div>
+                  </>
+                )}
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <input 
+                type="checkbox" 
+                id="set-default" 
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <label htmlFor="set-default" className="text-sm text-gray-700">
+                Set as default template for {templateType === 'invoice' ? 'invoices' : templateType === 'credit-note' ? 'credit notes' : 'statements'}
+              </label>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowTemplateModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveTemplate}>
+              {selectedTemplate ? 'Update Template' : 'Save Template'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+  
   // Render content based on active tab
   const renderContent = () => {
     switch (activeTab) {
@@ -824,6 +1383,8 @@ const BillsInvoices = () => {
       {/* Modals */}
       {renderInvoiceModal()}
       {renderCreditNoteModal()}
+      {renderStatementModal()}
+      {renderTemplateModal()}
     </div>
   );
 };
