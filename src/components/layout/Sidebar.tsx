@@ -1,5 +1,5 @@
 
-import { LayoutDashboard, BookOpen, CreditCard, FileText } from "lucide-react";
+import { LayoutDashboard, BookOpen, CreditCard, FileText, BarChart2 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import {
   Sidebar as SidebarRoot,
@@ -36,6 +36,11 @@ const menuItems = [
     title: "Bills & Invoices",
     path: "/bills-invoices",
     icon: FileText,
+  },
+  {
+    title: "Analytics",
+    path: "/analytics",
+    icon: BarChart2,
   },
 ];
 

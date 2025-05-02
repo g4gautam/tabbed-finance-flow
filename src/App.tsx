@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Ledger from "./pages/Ledger";
 import Payments from "./pages/Payments";
 import BillsInvoices from "./pages/BillsInvoices";
+import Analytics from "./pages/Analytics";
 import { AppLayout } from "./components/layout/AppLayout";
 import NotFound from "./pages/NotFound";
 
@@ -34,6 +35,11 @@ const App = () => (
           <Route path="/bills-invoices" element={
             <AppLayout>
               <BillsInvoices />
+            </AppLayout>
+          } />
+          <Route path="/analytics" element={
+            <AppLayout>
+              <Analytics />
             </AppLayout>
           } />
           <Route path="*" element={<NotFound />} />
