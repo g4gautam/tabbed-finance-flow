@@ -15,11 +15,21 @@ interface DatePickerProps {
   date: Date | undefined;
   setDate: (date: Date | undefined) => void;
   label?: string;
+  placeholder?: string;
+  className?: string;
+  disabled?: boolean;
 }
 
-export function DatePicker({ date, setDate, label }: DatePickerProps) {
+export function DatePicker({ 
+  date, 
+  setDate, 
+  label, 
+  placeholder = "Pick a date",
+  className,
+  disabled = false
+}: DatePickerProps) {
   return (
-    <div className="flex flex-col space-y-2">
+    <div className={cn("flex flex-col space-y-2", className)}>
       {label && <span className="text-sm font-medium">{label}</span>}
       <Popover>
         <PopoverTrigger asChild>
@@ -29,9 +39,10 @@ export function DatePicker({ date, setDate, label }: DatePickerProps) {
               "w-full justify-start text-left font-normal",
               !date && "text-muted-foreground"
             )}
+            disabled={disabled}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {date ? format(date, "PPP") : <span>Pick a date</span>}
+            {date ? format(date, "PPP") : <span>{placeholder}</span>}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0">
