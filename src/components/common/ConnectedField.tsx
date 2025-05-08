@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useFinancialData } from '../../contexts/FinancialDataContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -6,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
-import { InfoCircle } from 'lucide-react';
+import { Info } from 'lucide-react';
 
 interface ConnectedFieldProps {
   fieldName: string;
@@ -101,7 +100,7 @@ export function ConnectedField({
           <Popover>
             <PopoverTrigger>
               <Badge variant="outline" className="ml-2 cursor-help">
-                <InfoCircle className="h-3 w-3 mr-1" /> Connected
+                <Info className="h-3 w-3 mr-1" /> Connected
               </Badge>
             </PopoverTrigger>
             <PopoverContent>

@@ -7,6 +7,7 @@ import { toast } from "@/components/ui/use-toast";
 import { DatePicker } from "./DatePicker";
 import { ConnectedField } from "../common/ConnectedField";
 import { useFinancialData } from "../../contexts/FinancialDataContext";
+import { Label } from "@/components/ui/label";
 
 export function ConnectedExpenseForm() {
   const { 
