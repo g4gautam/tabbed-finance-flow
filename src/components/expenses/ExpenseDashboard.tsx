@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useLayoutEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -44,6 +44,35 @@ interface ExpenseDashboardProps {
 
 export function ExpenseDashboard({ expenseData, baseCurrency, currencies, offices }: ExpenseDashboardProps) {
   const [includeFixedExpenses, setIncludeFixedExpenses] = useState(true);
+  const [chartHeights, setChartHeights] = useState({
+    trend: 320,
+    pie: 300
+  });
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Use Layout Effect to calculate and adjust chart heights based on container dimensions
+  useLayoutEffect(() => {
+    const updateChartHeights = () => {
+      if (containerRef.current) {
+        const containerWidth = containerRef.current.clientWidth;
+        const isMobile = containerWidth < 768;
+        
+        setChartHeights({
+          trend: isMobile ? 300 : 320,
+          pie: isMobile ? 260 : 300
+        });
+      }
+    };
+
+    // Initialize heights
+    updateChartHeights();
+    
+    // Add resize listener
+    window.addEventListener('resize', updateChartHeights);
+    
+    // Clean up
+    return () => window.removeEventListener('resize', updateChartHeights);
+  }, []);
   
   const currencySymbol = currencies.find(c => c.code === baseCurrency)?.symbol || '€';
   
@@ -141,7 +170,7 @@ export function ExpenseDashboard({ expenseData, baseCurrency, currencies, office
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" ref={containerRef}>
       {/* Key Financial Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
@@ -216,7 +245,7 @@ export function ExpenseDashboard({ expenseData, baseCurrency, currencies, office
           <CardTitle className="text-lg font-medium text-gray-800">Revenue vs. Expenses Trend</CardTitle>
         </CardHeader>
         <CardContent className="p-6">
-          <div className="h-80">
+          <div style={{ height: `${chartHeights.trend}px` }}>
             <ChartContainer
               config={{
                 revenue: { color: "#8B5CF6" },
@@ -252,7 +281,7 @@ export function ExpenseDashboard({ expenseData, baseCurrency, currencies, office
             <CardTitle className="text-lg font-medium text-gray-800">Expenses by Category</CardTitle>
           </CardHeader>
           <CardContent className="p-6">
-            <div className="h-64">
+            <div style={{ height: `${chartHeights.pie}px` }}>
               <ChartContainer config={categoryChartConfig}>
                 <ResponsiveContainer width="100%" height="100%">
                   <RechartsPI>
@@ -262,7 +291,7 @@ export function ExpenseDashboard({ expenseData, baseCurrency, currencies, office
                       nameKey="name"
                       cx="50%"
                       cy="50%"
-                      outerRadius={80}
+                      outerRadius={chartHeights.pie * 0.3}
                       label={({name}) => name}
                     >
                       {expensesByCategory.map((entry: any, index: number) => (
@@ -286,7 +315,7 @@ export function ExpenseDashboard({ expenseData, baseCurrency, currencies, office
             <CardTitle className="text-lg font-medium text-gray-800">Expenses by Payment Method</CardTitle>
           </CardHeader>
           <CardContent className="p-6">
-            <div className="h-64">
+            <div style={{ height: `${chartHeights.pie}px` }}>
               <ChartContainer config={categoryChartConfig}>
                 <ResponsiveContainer width="100%" height="100%">
                   <RechartsPI>
@@ -296,7 +325,7 @@ export function ExpenseDashboard({ expenseData, baseCurrency, currencies, office
                       nameKey="name"
                       cx="50%"
                       cy="50%"
-                      outerRadius={80}
+                      outerRadius={chartHeights.pie * 0.3}
                       label={({name}) => name}
                     >
                       {expensesByPaymentMethod.map((entry: any, index: number) => (
@@ -320,7 +349,7 @@ export function ExpenseDashboard({ expenseData, baseCurrency, currencies, office
             <CardTitle className="text-lg font-medium text-gray-800">Expenses by Office</CardTitle>
           </CardHeader>
           <CardContent className="p-6">
-            <div className="h-64">
+            <div style={{ height: `${chartHeights.pie}px` }}>
               <ChartContainer config={categoryChartConfig}>
                 <ResponsiveContainer width="100%" height="100%">
                   <RechartsPI>
@@ -330,7 +359,7 @@ export function ExpenseDashboard({ expenseData, baseCurrency, currencies, office
                       nameKey="name"
                       cx="50%"
                       cy="50%"
-                      outerRadius={80}
+                      outerRadius={chartHeights.pie * 0.3}
                       label={({name}) => name}
                     >
                       {expensesByOffice.map((entry: any, index: number) => (
