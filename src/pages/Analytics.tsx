@@ -3,7 +3,8 @@ import {
   BarChart2, Download, Calendar, Filter, Search,
   TrendingUp, DollarSign, PieChart, Clock, 
   RefreshCw, Save, Share, Clipboard, Plus,
-  ArrowUp, ArrowDown, ChartLine, Info, Users, FileText, Database, Coins
+  ArrowUp, ArrowDown, ChartLine, Info, Users, FileText, Database, Coins,
+  ChevronDown
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
