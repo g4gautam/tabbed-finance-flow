@@ -10,6 +10,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
+import { useFinancialData } from "../../contexts/FinancialDataContext";
 
 interface DatePickerProps {
   date: Date | undefined;
@@ -18,6 +20,7 @@ interface DatePickerProps {
   placeholder?: string;
   className?: string;
   disabled?: boolean;
+  fieldName?: string;
 }
 
 export function DatePicker({ 
@@ -26,11 +29,23 @@ export function DatePicker({
   label, 
   placeholder = "Pick a date",
   className,
-  disabled = false
+  disabled = false,
+  fieldName
 }: DatePickerProps) {
+  // Connect to financial data context if fieldName is provided
+  const financialData = fieldName ? useFinancialData() : null;
+  const hasConnections = fieldName && financialData ? financialData.getFieldConnections(fieldName).length > 0 : false;
+  
   return (
     <div className={cn("flex flex-col space-y-2", className)}>
-      {label && <span className="text-sm font-medium">{label}</span>}
+      {label && (
+        <div className="flex items-center">
+          <span className="text-sm font-medium">{label}</span>
+          {hasConnections && (
+            <Badge variant="outline" className="ml-2">Connected</Badge>
+          )}
+        </div>
+      )}
       <Popover>
         <PopoverTrigger asChild>
           <Button
