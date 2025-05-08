@@ -677,4 +677,182 @@ const Analytics = () => {
                 </div>
                 <div className="text-center p-4 bg-gray-50 rounded-lg border border-gray-200">
                   <h4 className="font-medium mb-1">Total Refunds & Disputes</h4>
-                  <p className="text-
+                  <p className="text-xl font-bold">{formatCurrency(profitLossSummary.refundsAndDisputes.total)}</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex flex-col space-y-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <h1 className="text-2xl font-bold">Financial Analytics</h1>
+          
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  {dateRange}
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-56 p-4">
+                <div className="space-y-2">
+                  {["This Week", "This Month", "This Quarter", "This Year"].map((range) => (
+                    <Button 
+                      key={range}
+                      variant={dateRange === range ? "default" : "ghost"}
+                      className="w-full justify-start"
+                      onClick={() => {
+                        setDateRange(range);
+                        setShowCustomDate(false);
+                      }}
+                    >
+                      {range}
+                    </Button>
+                  ))}
+                  <Button
+                    variant={showCustomDate ? "default" : "ghost"}
+                    className="w-full justify-start"
+                    onClick={() => setShowCustomDate(true)}
+                  >
+                    Custom Range
+                  </Button>
+                  
+                  {showCustomDate && (
+                    <div className="pt-4 space-y-2">
+                      <DatePicker 
+                        date={startDate} 
+                        setDate={setStartDate}
+                        label="Start Date"
+                      />
+                      <DatePicker 
+                        date={endDate} 
+                        setDate={setEndDate}
+                        label="End Date"
+                      />
+                      <Button 
+                        className="w-full mt-2"
+                        onClick={() => {
+                          if(startDate && endDate) {
+                            setDateRange(`${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`);
+                          }
+                        }}
+                      >
+                        Apply Range
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
+            
+            <Button variant="outline" className="flex items-center gap-2">
+              <Filter className="h-4 w-4" />
+              Filter
+            </Button>
+            
+            <Button variant="outline" className="flex items-center gap-2">
+              <Download className="h-4 w-4" />
+              Export
+            </Button>
+          </div>
+        </div>
+        
+        <Tabs defaultValue="dashboard" value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 mb-8">
+            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+            <TabsTrigger value="revenue">Revenue</TabsTrigger>
+            <TabsTrigger value="expenses">Expenses</TabsTrigger>
+            <TabsTrigger value="investors">Investor Dashboard</TabsTrigger>
+            <TabsTrigger value="reports">Reports</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="dashboard">
+            <div className="space-y-6">
+              {/* Dashboard content would go here */}
+              <p className="text-muted-foreground">Overview dashboard would display here.</p>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="revenue">
+            <div className="space-y-6">
+              {/* Revenue content would go here */}
+              <p className="text-muted-foreground">Revenue analytics would display here.</p>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="expenses">
+            <div className="space-y-6">
+              {/* Expenses content would go here */}
+              <p className="text-muted-foreground">Expense analytics would display here.</p>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="investors">
+            {renderInvestorDashboard()}
+          </TabsContent>
+          
+          <TabsContent value="reports">
+            <div className="space-y-6">
+              {/* Saved Reports content */}
+              <Card>
+                <CardHeader className="px-6 py-4 border-b border-gray-200">
+                  <CardTitle className="text-lg font-medium text-gray-800">Saved Reports</CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Report Name</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Last Run</TableHead>
+                        <TableHead>Schedule</TableHead>
+                        <TableHead>Format</TableHead>
+                        <TableHead></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {reportsData.savedReports.map((report) => (
+                        <TableRow key={report.id} className="hover:bg-gray-50">
+                          <TableCell className="font-medium">{report.name}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{report.type}</Badge>
+                          </TableCell>
+                          <TableCell>{report.lastRun}</TableCell>
+                          <TableCell>{report.schedule}</TableCell>
+                          <TableCell>{report.format}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Button size="icon" variant="ghost">
+                                <RefreshCw className="h-4 w-4" />
+                              </Button>
+                              <Button size="icon" variant="ghost">
+                                <Download className="h-4 w-4" />
+                              </Button>
+                              <Button size="icon" variant="ghost">
+                                <Share className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
+};
+
+export default Analytics;
