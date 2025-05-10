@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { 
-  CreditCard, Search, Plus, ChevronDown, 
-  Filter, Download, Check, FileText, 
-  DollarSign, Printer, Calendar, RefreshCw,
-  CheckCircle, AlertTriangle, Eye, Edit, Trash2
+  Search, Filter, Plus, Download, RefreshCw, Eye, 
+  CreditCard, DollarSign, Wallet, Receipt, Calendar,
+  CheckCircle, AlertTriangle, Printer, FileText, 
+  Edit, Trash2, ChevronDown, Check
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +15,7 @@ import { RadioGroup, RadioGroupItem } from '@radix-ui/react-radio-group';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
+import { Payment } from '@/models/financialEntities';
 
 const Payments = () => {
   const [activeTab, setActiveTab] = useState('paymentCapture');
