@@ -23,112 +23,146 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { 
+  BookingStatus, 
+  AmendStatus, 
+  RefundStatus,
+  Booking as BookingType,
+  Passenger as PassengerType,
+  Invoice as InvoiceType,
+  Payment as PaymentType
+} from "@/models/financialEntities";
+import {
+  getBookingStatusVariant,
+  getAmendStatusVariant,
+  getRefundStatusVariant,
+  isActiveBooking,
+  isCompletedBooking,
+  isCancelledBooking
+} from "@/constants/statusCodes";
 
 const Bookings = () => {
   const [activeTab, setActiveTab] = useState('activeBookings');
   const [showBookingDetails, setShowBookingDetails] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<string | null>(null);
 
-  // Sample mock data for the passenger-centric booking model
-  const mockBookings = [
+  // Sample mock data for the passenger-centric booking model with updated statuses
+  const mockBookings: BookingType[] = [
     {
       booking_id: 'FFS-BKG-20250508-0001',
       agent_id: 101,
       agent_name: 'Business Travel International',
       total_amount: 2540.50,
       currency: 'USD',
-      status: 'Active',
+      status: BookingStatus.TICKETED,
       created_at: '2025-05-08',
       route: 'NYC-LON',
       departure_date: '2025-06-15',
       return_date: '2025-06-22',
-      passenger_count: 3
-    },
+      passenger_count: 3,
+      amend_status: AmendStatus.NONE,
+      refund_status: RefundStatus.NONE
+    } as any, // Using 'any' for mock data with extra non-interface properties
     {
       booking_id: 'FFS-BKG-20250507-0002',
       agent_id: 102,
       agent_name: 'Luxury Vacations',
       total_amount: 4750.25,
       currency: 'USD',
-      status: 'Active',
+      status: BookingStatus.CONFIRMED,
       created_at: '2025-05-07',
       route: 'LAX-TYO',
       departure_date: '2025-07-01',
       return_date: '2025-07-15',
-      passenger_count: 2
-    },
+      passenger_count: 2,
+      amend_status: AmendStatus.NONE,
+      refund_status: RefundStatus.NONE
+    } as any,
     {
       booking_id: 'FFS-BKG-20250506-0003',
       agent_id: 103,
       agent_name: 'Holiday Planners',
       total_amount: 1850.00,
       currency: 'USD',
-      status: 'Canceled',
+      status: BookingStatus.CANCELLED,
       created_at: '2025-05-06',
       route: 'JFK-CDG',
       departure_date: '2025-06-20',
       return_date: '2025-06-27',
-      passenger_count: 1
-    },
+      passenger_count: 1,
+      amend_status: AmendStatus.NONE,
+      refund_status: RefundStatus.NONE
+    } as any,
     {
       booking_id: 'FFS-BKG-20250505-0004',
       agent_id: 104,
       agent_name: 'Executive Travel',
       total_amount: 5240.75,
       currency: 'USD',
-      status: 'Completed',
+      status: BookingStatus.TICKETED,
       created_at: '2025-05-05',
       route: 'SFO-SYD',
       departure_date: '2025-05-10',
       return_date: '2025-05-20',
-      passenger_count: 4
-    },
+      passenger_count: 4,
+      amend_status: AmendStatus.DEP_AMENDED,
+      refund_status: RefundStatus.NONE
+    } as any,
     {
       booking_id: 'FFS-BKG-20250504-0005',
       agent_id: 105,
       agent_name: 'World Tours Corp',
       total_amount: 3120.50,
       currency: 'USD',
-      status: 'Active',
+      status: BookingStatus.TICKETED,
       created_at: '2025-05-04',
       route: 'ORD-FRA',
       departure_date: '2025-06-05',
       return_date: '2025-06-12',
-      passenger_count: 2
-    }
+      passenger_count: 2,
+      amend_status: AmendStatus.NONE,
+      refund_status: RefundStatus.REFUND_IN_PROCESS
+    } as any
   ];
 
-  const mockPassengers = [
+  const mockPassengers: PassengerType[] = [
     {
       passenger_id: 'FFS-BKG-20250508-0001-P01',
       booking_id: 'FFS-BKG-20250508-0001',
       name: 'John Smith',
       ticket_number: '1234567890123',
-      status: 'Active',
+      status: BookingStatus.TICKETED,
       fare_amount: 950.25,
-      fare_type: 'Business'
+      fare_type: 'Business',
+      amend_status: AmendStatus.NONE,
+      refund_status: RefundStatus.NONE
     },
     {
       passenger_id: 'FFS-BKG-20250508-0001-P02',
       booking_id: 'FFS-BKG-20250508-0001',
       name: 'Jane Smith',
       ticket_number: '1234567890124',
-      status: 'Active',
+      status: BookingStatus.TICKETED,
       fare_amount: 950.25,
-      fare_type: 'Business'
+      fare_type: 'Business',
+      amend_status: AmendStatus.NONE,
+      refund_status: RefundStatus.NONE
     },
     {
       passenger_id: 'FFS-BKG-20250508-0001-P03',
       booking_id: 'FFS-BKG-20250508-0001',
       name: 'Mike Johnson',
       ticket_number: '1234567890125',
-      status: 'Active',
+      status: BookingStatus.TICKETED,
       fare_amount: 640.00,
-      fare_type: 'Economy'
+      fare_type: 'Economy',
+      amend_status: AmendStatus.NONE,
+      refund_status: RefundStatus.NONE
     }
   ];
 
-  const mockInvoices = [
+  // Sample mock data for the passenger-centric booking model
+  const mockInvoices: InvoiceType[] = [
     {
       invoice_id: 'FFS-INV-20250508-0001',
       booking_id: 'FFS-BKG-20250508-0001',
@@ -175,7 +209,7 @@ const Bookings = () => {
     }
   ];
 
-  const mockPayments = [
+  const mockPayments: PaymentType[] = [
     {
       payment_id: 'FFS-PAY-20250508-0001',
       invoice_id: 'FFS-INV-20250508-0001',
@@ -224,9 +258,21 @@ const Bookings = () => {
 
   // Filter bookings based on active tab
   const filteredBookings = mockBookings.filter(booking => {
-    if (activeTab === 'activeBookings') return booking.status === 'Active';
-    if (activeTab === 'completedBookings') return booking.status === 'Completed';
-    if (activeTab === 'canceledBookings') return booking.status === 'Canceled';
+    if (activeTab === 'activeBookings') {
+      return isActiveBooking(booking.status, booking.refund_status);
+    }
+    if (activeTab === 'completedBookings') {
+      return isCompletedBooking(booking.status, booking.refund_status);
+    }
+    if (activeTab === 'canceledBookings') {
+      return isCancelledBooking(booking.status);
+    }
+    if (activeTab === 'amendedBookings') {
+      return booking.amend_status !== AmendStatus.NONE;
+    }
+    if (activeTab === 'refundBookings') {
+      return booking.refund_status !== RefundStatus.NONE;
+    }
     return true; // All bookings tab
   });
 
@@ -302,6 +348,8 @@ const Bookings = () => {
                 <TableHead>Passengers</TableHead>
                 <TableHead>Total Amount</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Amend</TableHead>
+                <TableHead>Refund</TableHead>
                 <TableHead>Created</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -310,16 +358,30 @@ const Bookings = () => {
               {filteredBookings.map((booking) => (
                 <TableRow key={booking.booking_id} className="hover:bg-muted/50">
                   <TableCell className="font-medium">{booking.booking_id}</TableCell>
-                  <TableCell>{booking.agent_name}</TableCell>
+                  <TableCell>{(booking as any).agent_name}</TableCell>
                   <TableCell>{booking.route}</TableCell>
                   <TableCell>{booking.departure_date}</TableCell>
                   <TableCell>{booking.return_date || 'N/A'}</TableCell>
-                  <TableCell className="font-medium">{booking.passenger_count}</TableCell>
+                  <TableCell className="font-medium">{(booking as any).passenger_count}</TableCell>
                   <TableCell>{formatCurrency(booking.total_amount, booking.currency)}</TableCell>
                   <TableCell>
-                    <Badge variant={booking.status === 'Active' ? 'success' : booking.status === 'Completed' ? 'neutral' : 'destructive'}>
+                    <Badge variant={getBookingStatusVariant(booking.status)}>
                       {booking.status}
                     </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {booking.amend_status && booking.amend_status !== AmendStatus.NONE && (
+                      <Badge variant={getAmendStatusVariant(booking.amend_status)}>
+                        {booking.amend_status}
+                      </Badge>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {booking.refund_status && booking.refund_status !== RefundStatus.NONE && (
+                      <Badge variant={getRefundStatusVariant(booking.refund_status)}>
+                        {booking.refund_status}
+                      </Badge>
+                    )}
                   </TableCell>
                   <TableCell>{booking.created_at}</TableCell>
                   <TableCell className="space-x-2">
@@ -486,6 +548,19 @@ const Bookings = () => {
     );
   };
 
+  // Get status text for display
+  const getStatusDisplayText = (status: BookingStatus, amendStatus?: AmendStatus, refundStatus?: RefundStatus): string => {
+    if (refundStatus && refundStatus !== RefundStatus.NONE) {
+      return refundStatus;
+    }
+    
+    if (amendStatus && amendStatus !== AmendStatus.NONE) {
+      return amendStatus;
+    }
+    
+    return status;
+  };
+
   return (
     <div className="container mx-auto">
       <div className="mb-6 flex items-center justify-between">
@@ -509,19 +584,31 @@ const Bookings = () => {
             value="activeBookings"
             className="py-4 px-1 rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
           >
-            Active Bookings
-          </TabsTrigger>
-          <TabsTrigger 
-            value="completedBookings"
-            className="py-4 px-1 ml-8 rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
-          >
-            Completed Bookings
+            Confirmed/Ticketed
           </TabsTrigger>
           <TabsTrigger 
             value="canceledBookings"
             className="py-4 px-1 ml-8 rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
           >
-            Canceled Bookings
+            Cancelled
+          </TabsTrigger>
+          <TabsTrigger 
+            value="amendedBookings"
+            className="py-4 px-1 ml-8 rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+          >
+            Amended
+          </TabsTrigger>
+          <TabsTrigger 
+            value="refundBookings"
+            className="py-4 px-1 ml-8 rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+          >
+            Refunds
+          </TabsTrigger>
+          <TabsTrigger 
+            value="completedBookings"
+            className="py-4 px-1 ml-8 rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+          >
+            Completed
           </TabsTrigger>
           <TabsTrigger 
             value="bookingsAnalytics"
@@ -537,6 +624,12 @@ const Bookings = () => {
           {renderBookingsList()}
         </TabsContent>
         <TabsContent value="canceledBookings" className="mt-0">
+          {renderBookingsList()}
+        </TabsContent>
+        <TabsContent value="amendedBookings" className="mt-0">
+          {renderBookingsList()}
+        </TabsContent>
+        <TabsContent value="refundBookings" className="mt-0">
           {renderBookingsList()}
         </TabsContent>
         <TabsContent value="bookingsAnalytics" className="mt-0">
@@ -558,60 +651,114 @@ const Bookings = () => {
               <div>
                 <h3 className="text-lg font-medium mb-3">Booking Summary</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {/* Agent info */}
                   <div className="p-3 border rounded-md">
                     <div className="text-sm text-gray-500">Agent</div>
                     <div className="font-medium">
-                      {mockBookings.find(b => b.booking_id === selectedBooking)?.agent_name}
+                      {(mockBookings.find(b => b.booking_id === selectedBooking) as any)?.agent_name}
                     </div>
                   </div>
+                  
+                  {/* Route */}
                   <div className="p-3 border rounded-md">
                     <div className="text-sm text-gray-500">Route</div>
                     <div className="font-medium">
                       {mockBookings.find(b => b.booking_id === selectedBooking)?.route}
                     </div>
                   </div>
+                  
+                  {/* Departure Date */}
                   <div className="p-3 border rounded-md">
                     <div className="text-sm text-gray-500">Departure Date</div>
                     <div className="font-medium">
                       {mockBookings.find(b => b.booking_id === selectedBooking)?.departure_date}
                     </div>
                   </div>
+                  
+                  {/* Return Date */}
                   <div className="p-3 border rounded-md">
                     <div className="text-sm text-gray-500">Return Date</div>
                     <div className="font-medium">
                       {mockBookings.find(b => b.booking_id === selectedBooking)?.return_date || 'N/A'}
                     </div>
                   </div>
+                  
+                  {/* Total Amount */}
                   <div className="p-3 border rounded-md">
                     <div className="text-sm text-gray-500">Total Amount</div>
                     <div className="font-medium">
                       {formatCurrency(mockBookings.find(b => b.booking_id === selectedBooking)?.total_amount || 0)}
                     </div>
                   </div>
+                  
+                  {/* Status */}
                   <div className="p-3 border rounded-md">
                     <div className="text-sm text-gray-500">Status</div>
                     <div className="font-medium">
-                      <Badge variant={
-                        mockBookings.find(b => b.booking_id === selectedBooking)?.status === 'Active' 
-                          ? 'success' 
-                          : mockBookings.find(b => b.booking_id === selectedBooking)?.status === 'Completed'
-                            ? 'neutral'
-                            : 'destructive'
-                      }>
-                        {mockBookings.find(b => b.booking_id === selectedBooking)?.status}
-                      </Badge>
+                      {(() => {
+                        const booking = mockBookings.find(b => b.booking_id === selectedBooking);
+                        if (!booking) return null;
+                        
+                        return (
+                          <Badge variant={getBookingStatusVariant(booking.status)}>
+                            {booking.status}
+                          </Badge>
+                        );
+                      })()}
                     </div>
                   </div>
+                  
+                  {/* Amendment Status */}
+                  <div className="p-3 border rounded-md">
+                    <div className="text-sm text-gray-500">Amendment Status</div>
+                    <div className="font-medium">
+                      {(() => {
+                        const booking = mockBookings.find(b => b.booking_id === selectedBooking);
+                        if (!booking || !booking.amend_status || booking.amend_status === AmendStatus.NONE) {
+                          return "None";
+                        }
+                        
+                        return (
+                          <Badge variant={getAmendStatusVariant(booking.amend_status)}>
+                            {booking.amend_status}
+                          </Badge>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                  
+                  {/* Refund Status */}
+                  <div className="p-3 border rounded-md">
+                    <div className="text-sm text-gray-500">Refund Status</div>
+                    <div className="font-medium">
+                      {(() => {
+                        const booking = mockBookings.find(b => b.booking_id === selectedBooking);
+                        if (!booking || !booking.refund_status || booking.refund_status === RefundStatus.NONE) {
+                          return "None";
+                        }
+                        
+                        return (
+                          <Badge variant={getRefundStatusVariant(booking.refund_status)}>
+                            {booking.refund_status}
+                          </Badge>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                  
+                  {/* Created Date */}
                   <div className="p-3 border rounded-md">
                     <div className="text-sm text-gray-500">Created Date</div>
                     <div className="font-medium">
                       {mockBookings.find(b => b.booking_id === selectedBooking)?.created_at}
                     </div>
                   </div>
+                  
+                  {/* Passenger Count */}
                   <div className="p-3 border rounded-md">
                     <div className="text-sm text-gray-500">Passenger Count</div>
                     <div className="font-medium">
-                      {mockBookings.find(b => b.booking_id === selectedBooking)?.passenger_count}
+                      {(mockBookings.find(b => b.booking_id === selectedBooking) as any)?.passenger_count}
                     </div>
                   </div>
                 </div>
@@ -632,26 +779,32 @@ const Bookings = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {getBookingPassengers(selectedBooking).map(passenger => (
-                      <TableRow key={passenger.passenger_id}>
-                        <TableCell className="font-medium">{passenger.passenger_id}</TableCell>
-                        <TableCell>{passenger.name}</TableCell>
-                        <TableCell>
-                          <Badge variant={
-                            passenger.status === 'Active' 
-                              ? 'success' 
-                              : passenger.status === 'Refunded'
-                                ? 'destructive'
-                                : 'neutral'
-                          }>
-                            {passenger.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{passenger.ticket_number || 'N/A'}</TableCell>
-                        <TableCell>{passenger.fare_type}</TableCell>
-                        <TableCell>{formatCurrency(passenger.fare_amount)}</TableCell>
-                      </TableRow>
-                    ))}
+                    {mockPassengers
+                      .filter(passenger => passenger.booking_id === selectedBooking)
+                      .map(passenger => (
+                        <TableRow key={passenger.passenger_id}>
+                          <TableCell className="font-medium">{passenger.passenger_id}</TableCell>
+                          <TableCell>{passenger.name}</TableCell>
+                          <TableCell>
+                            <Badge variant={getBookingStatusVariant(passenger.status)}>
+                              {passenger.status}
+                            </Badge>
+                            {passenger.amend_status && passenger.amend_status !== AmendStatus.NONE && (
+                              <Badge variant={getAmendStatusVariant(passenger.amend_status)} className="ml-2">
+                                {passenger.amend_status}
+                              </Badge>
+                            )}
+                            {passenger.refund_status && passenger.refund_status !== RefundStatus.NONE && (
+                              <Badge variant={getRefundStatusVariant(passenger.refund_status)} className="ml-2">
+                                {passenger.refund_status}
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell>{passenger.ticket_number || 'N/A'}</TableCell>
+                          <TableCell>{passenger.fare_type}</TableCell>
+                          <TableCell>{formatCurrency(passenger.fare_amount)}</TableCell>
+                        </TableRow>
+                      ))}
                   </TableBody>
                 </Table>
               </div>

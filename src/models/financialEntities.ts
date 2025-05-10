@@ -97,6 +97,35 @@ export interface ExchangeRate {
   date: string;
 }
 
+// === Status Code Enumerations ===
+
+// Booking Status Types
+export enum BookingStatus {
+  CONFIRMED = "Confirmed",
+  TICKETED = "Ticketed",
+  CANCELLED = "Cancelled",
+  AUTO_CANCELLED = "Auto Cancelled",
+  VOIDED = "Voided"
+}
+
+// Amendment Status Types
+export enum AmendStatus {
+  DEP_AMENDED = "Dep.Amended",
+  RET_AMENDED = "Ret.Amended",
+  AMENDED = "Amended",
+  NAME_AMENDED = "Name Amended",
+  NONE = "None"
+}
+
+// Refund Status Types
+export enum RefundStatus {
+  REFUND_APPLIED = "Refund Applied",
+  REFUND_IN_PROCESS = "Refund In Process",
+  REFUNDED = "Refunded",
+  REFUND_REJECTED = "Refund Rejected",
+  NONE = "None"
+}
+
 // === NEW ENTITIES FOR PASSENGER-CENTRIC BOOKING MODEL ===
 
 // Booking - master record for a flight booking transaction
@@ -105,11 +134,13 @@ export interface Booking {
   agent_id: number;        // Reference to BusinessPartner
   total_amount: number;    // Total amount for all passengers
   currency: string;        // Currency code
-  status: string;          // Active, Canceled, Completed
+  status: BookingStatus;   // Updated to use BookingStatus enum
   created_at: string;      // Date created
   route: string;           // E.g. NYC-LON
   departure_date: string;  // Departure date
   return_date?: string;    // Return date if round-trip
+  amend_status?: AmendStatus; // Optional amendment status
+  refund_status?: RefundStatus; // Optional refund status
 }
 
 // Passenger - individual traveler within a booking
@@ -118,9 +149,11 @@ export interface Passenger {
   booking_id: string;      // Parent booking ID
   name: string;            // Passenger name
   ticket_number?: string;  // Airline ticket number when issued
-  status: string;          // Active, Canceled, Refunded
+  status: BookingStatus;   // Updated to use BookingStatus enum
   fare_amount: number;     // Individual fare amount
   fare_type: string;       // Basic, Classic, Flex
+  amend_status?: AmendStatus; // Optional amendment status
+  refund_status?: RefundStatus; // Optional refund status
 }
 
 // ActionType - types of financial actions that can be taken on a booking/passenger
