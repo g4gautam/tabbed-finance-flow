@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { 
   Ticket, Search, Filter, Plus, Edit, Trash2, 
   ChevronDown, Download, RefreshCw, Eye, Users,
-  Calendar, CheckCheck, Pie, ArrowUp, ArrowDown
+  Calendar, CheckCheck, ChartPie, ArrowUp, ArrowDown
 } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -499,7 +499,7 @@ const Bookings = () => {
             <RefreshCw className="h-4 w-4" /> Refresh
           </Button>
           <Button variant="outline" className="flex items-center gap-2">
-            <Pie className="h-4 w-4" /> Reports
+            <ChartPie className="h-4 w-4" /> Reports
           </Button>
         </div>
       </div>
