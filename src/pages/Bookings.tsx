@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Ticket, Search, Filter, Plus, Edit, Trash2, 
   ChevronDown, Download, RefreshCw, Eye, Users,
@@ -23,6 +23,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
 import { 
   BookingStatus, 
   AmendStatus, 
@@ -38,13 +39,16 @@ import {
   getRefundStatusVariant,
   isActiveBooking,
   isCompletedBooking,
-  isCancelledBooking
+  isCancelledBooking,
+  isRefundable
 } from "@/constants/statusCodes";
+import { RefundService } from "@/services/refundService";
 
 const Bookings = () => {
   const [activeTab, setActiveTab] = useState('activeBookings');
   const [showBookingDetails, setShowBookingDetails] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<string | null>(null);
+  const { toast } = useToast();
 
   // Sample mock data for the passenger-centric booking model with updated statuses
   const mockBookings: BookingType[] = [
@@ -248,6 +252,36 @@ const Bookings = () => {
     }
   ];
 
+  // Function to handle applying for a refund
+  const handleApplyForRefund = (bookingId: string) => {
+    const booking = mockBookings.find(b => b.booking_id === bookingId);
+    if (!booking) return;
+
+    // Check if the booking is eligible for refund
+    if (RefundService.isBookingRefundEligible(booking, mockInvoices, mockPayments)) {
+      // In a real app, you would update this in your database
+      // For mock data, we're just showing a toast notification
+      toast({
+        title: "Refund Applied",
+        description: `Refund application submitted for booking ${bookingId}`,
+      });
+    } else {
+      toast({
+        title: "Not Eligible for Refund",
+        description: "This booking is not eligible for a refund.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Function to check if a passenger is eligible for refund
+  const isPassengerRefundEligible = (passengerId: string): boolean => {
+    const passenger = mockPassengers.find(p => p.passenger_id === passengerId);
+    if (!passenger) return false;
+    
+    return RefundService.isPassengerRefundEligible(passenger, mockInvoices, mockPayments);
+  };
+
   // Format currency
   const formatCurrency = (amount: number, currency = 'USD') => {
     return new Intl.NumberFormat('en-US', {
@@ -294,6 +328,50 @@ const Bookings = () => {
   // Get payments for a specific invoice
   const getInvoicePayments = (invoiceId: string) => {
     return mockPayments.filter(payment => payment.invoice_id === invoiceId);
+  };
+
+  // Check if all invoices for a booking are paid
+  const areAllInvoicesPaid = (bookingId: string): boolean => {
+    const invoices = getBookingInvoices(bookingId);
+    if (invoices.length === 0) return false;
+    
+    return invoices.every(invoice => {
+      const payments = getInvoicePayments(invoice.invoice_id);
+      return payments.some(payment => payment.status === 'Completed');
+    });
+  };
+
+  // Function to render refund eligibility status
+  const renderRefundEligibility = (booking: BookingType) => {
+    if (booking.status !== BookingStatus.TICKETED) {
+      return <span className="text-gray-500">Not eligible (not ticketed)</span>;
+    }
+    
+    if (booking.refund_status && booking.refund_status !== RefundStatus.NONE) {
+      return (
+        <Badge variant={getRefundStatusVariant(booking.refund_status)}>
+          {booking.refund_status}
+        </Badge>
+      );
+    }
+    
+    const isEligible = areAllInvoicesPaid(booking.booking_id);
+    
+    return isEligible ? (
+      <div className="flex items-center">
+        <Badge variant="success" className="mr-2">Eligible</Badge>
+        <Button 
+          variant="outline" 
+          size="sm"
+          className="text-xs" 
+          onClick={() => handleApplyForRefund(booking.booking_id)}
+        >
+          Apply for Refund
+        </Button>
+      </div>
+    ) : (
+      <span className="text-amber-500">Waiting for payment</span>
+    );
   };
 
   // Render Active Bookings Tab
