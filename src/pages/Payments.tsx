@@ -818,4 +818,524 @@ const Payments = () => {
                   
                   {selectedReceipt.authorizationCode && (
                     <div className="grid grid-cols-2">
-                      <div className="text-sm
+                      <div className="text-sm text-gray-500">Authorization Code:</div>
+                      <div className="font-medium">{selectedReceipt.authorizationCode}</div>
+                    </div>
+                  )}
+                  
+                  {selectedReceipt.bankReference && (
+                    <div className="grid grid-cols-2">
+                      <div className="text-sm text-gray-500">Bank Reference:</div>
+                      <div className="font-medium">{selectedReceipt.bankReference}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <DialogFooter className="sm:justify-start">
+                <div className="w-full flex justify-between">
+                  <Button variant="outline" onClick={() => setShowReceiptModal(false)}>Cancel</Button>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600">
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                </div>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
+      </div>
+    );
+  };
+
+  // Render Refunds Management Tab
+  const renderRefundsManagement = () => {
+    return (
+      <div className="space-y-6">
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg font-medium">Pending Refunds</CardTitle>
+              <CardDescription>Refund requests awaiting processing</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center">
+                <div className="mr-4 rounded-full bg-yellow-100 p-2">
+                  <AlertTriangle className="h-6 w-6 text-yellow-700" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold">{refundData.pendingRequests.length}</div>
+                  <div className="text-sm text-muted-foreground">Open requests</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg font-medium">Processed Refunds</CardTitle>
+              <CardDescription>Completed refund requests</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center">
+                <div className="mr-4 rounded-full bg-green-100 p-2">
+                  <CheckCircle className="h-6 w-6 text-green-700" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold">
+                    {refundData.processedRefunds.filter(r => r.status === RefundStatus.REFUNDED).length}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Approved refunds</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg font-medium">Refund Amount</CardTitle>
+              <CardDescription>Total refund value (this month)</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center">
+                <div className="mr-4 rounded-full bg-blue-100 p-2">
+                  <BadgeDollarSign className="h-6 w-6 text-blue-700" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold">
+                    {formatCurrency(
+                      refundData.processedRefunds
+                        .filter(r => r.status === RefundStatus.REFUNDED)
+                        .reduce((sum, refund) => sum + refund.amount, 0)
+                    )}
+                  </div>
+                  <div className="text-sm text-muted-foreground">May 2025</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        
+        {/* Pending Refunds Table */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <div className="space-y-1">
+              <CardTitle>Refund Queue</CardTitle>
+              <CardDescription>Manage pending refund requests</CardDescription>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input 
+                  type="search" 
+                  placeholder="Search refunds..." 
+                  className="w-[200px] pl-8 md:w-[300px]"
+                />
+              </div>
+              <Button variant="outline" size="sm">
+                <Filter className="mr-2 h-4 w-4" />
+                Filter
+              </Button>
+              <Button variant="outline" size="sm">
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Refresh
+              </Button>
+              <Button variant="outline" size="sm">
+                <Download className="mr-2 h-4 w-4" />
+                Export
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Refund ID</TableHead>
+                  <TableHead>Booking</TableHead>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Request Date</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Priority</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {refundData.pendingRequests.map((refund) => (
+                  <TableRow key={refund.id}>
+                    <TableCell className="font-medium text-blue-600">{refund.id}</TableCell>
+                    <TableCell>{refund.bookingId}</TableCell>
+                    <TableCell>{refund.customer}</TableCell>
+                    <TableCell className="font-medium">{formatCurrency(refund.amount)}</TableCell>
+                    <TableCell>{refund.requestDate}</TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant={
+                          REFUND_IN_PROGRESS_STATUSES.includes(refund.status) 
+                            ? "outline" 
+                            : REFUND_COMPLETED_STATUSES.includes(refund.status) 
+                              ? "default" 
+                              : "destructive"
+                        }
+                        className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
+                      >
+                        {refund.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant="outline" 
+                        className={`
+                          ${refund.priority === 'High' ? 'bg-red-100 text-red-800 hover:bg-red-100' : 
+                            refund.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100' : 
+                            'bg-green-100 text-green-800 hover:bg-green-100'}
+                        `}
+                      >
+                        {refund.priority}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Button 
+                        size="sm" 
+                        onClick={() => {
+                          setSelectedRefund(refund);
+                          setShowRefundModal(true);
+                        }}
+                        className="h-7 bg-blue-600 hover:bg-blue-700"
+                      >
+                        Process
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+        
+        {/* Processed Refunds Table */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle>Processed Refunds</CardTitle>
+            <CardDescription>History of completed or rejected refund requests</CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Refund ID</TableHead>
+                  <TableHead>Booking</TableHead>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Request Date</TableHead>
+                  <TableHead>Processed Date</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Processor</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {refundData.processedRefunds.map((refund) => (
+                  <TableRow key={refund.id}>
+                    <TableCell className="font-medium text-blue-600">{refund.id}</TableCell>
+                    <TableCell>{refund.bookingId}</TableCell>
+                    <TableCell>{refund.customer}</TableCell>
+                    <TableCell className="font-medium">{formatCurrency(refund.amount)}</TableCell>
+                    <TableCell>{refund.requestDate}</TableCell>
+                    <TableCell>{refund.processedDate}</TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant={refund.status === RefundStatus.REFUNDED ? "default" : "destructive"}
+                        className={
+                          refund.status === RefundStatus.REFUNDED 
+                            ? "bg-green-100 text-green-800 hover:bg-green-100" 
+                            : "bg-red-100 text-red-800 hover:bg-red-100"
+                        }
+                      >
+                        {refund.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{refund.processor}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+
+        {/* Refund Processing Modal */}
+        {showRefundModal && selectedRefund && (
+          <Dialog open={showRefundModal} onOpenChange={setShowRefundModal}>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>Process Refund Request</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm text-muted-foreground">Refund ID</Label>
+                    <p className="font-medium">{selectedRefund.id}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm text-muted-foreground">Booking ID</Label>
+                    <p className="font-medium">{selectedRefund.bookingId}</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <Label className="text-sm text-muted-foreground">Customer</Label>
+                  <p className="font-medium">{selectedRefund.customer}</p>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm text-muted-foreground">Amount</Label>
+                    <p className="font-medium">{formatCurrency(selectedRefund.amount)}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm text-muted-foreground">Request Date</Label>
+                    <p className="font-medium">{selectedRefund.requestDate}</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <Label className="text-sm text-muted-foreground">Reason for Refund</Label>
+                  <p className="font-medium">{selectedRefund.reason}</p>
+                </div>
+                
+                <div>
+                  <Label htmlFor="refund-notes">Processing Notes</Label>
+                  <textarea
+                    id="refund-notes"
+                    className="mt-1 block w-full rounded-md border border-input px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    rows={3}
+                    placeholder="Add notes about this refund..."
+                  ></textarea>
+                </div>
+              </div>
+              <DialogFooter className="sm:justify-start">
+                <div className="w-full flex justify-between">
+                  <Button variant="outline" onClick={() => setShowRefundModal(false)}>Cancel</Button>
+                  <div className="space-x-2">
+                    <Button 
+                      variant="destructive"
+                      onClick={() => handleProcessRefund(selectedRefund, false)}
+                    >
+                      Reject Refund
+                    </Button>
+                    <Button
+                      onClick={() => handleProcessRefund(selectedRefund, true)}
+                    >
+                      Approve Refund
+                    </Button>
+                  </div>
+                </div>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="container mx-auto py-8">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold mb-2">Financial Management</h1>
+        <p className="text-muted-foreground">Manage payments, verifications, receipts, and refunds</p>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="mb-6">
+          <TabsTrigger value="paymentCapture">
+            <CreditCard className="mr-2 h-4 w-4" />
+            Payment Capture
+          </TabsTrigger>
+          <TabsTrigger value="paymentVerification">
+            <CheckCircle className="mr-2 h-4 w-4" />
+            Verification
+          </TabsTrigger>
+          <TabsTrigger value="paymentReceipts">
+            <Receipt className="mr-2 h-4 w-4" />
+            Receipts
+          </TabsTrigger>
+          <TabsTrigger value="refunds">
+            <BadgeDollarSign className="mr-2 h-4 w-4" />
+            Refunds
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="paymentCapture">
+          {renderPaymentCapture()}
+        </TabsContent>
+        
+        <TabsContent value="paymentVerification">
+          {renderPaymentVerification()}
+        </TabsContent>
+        
+        <TabsContent value="paymentReceipts">
+          {renderPaymentReceipts()}
+        </TabsContent>
+        
+        <TabsContent value="refunds">
+          {renderRefundsManagement()}
+        </TabsContent>
+      </Tabs>
+      
+      {/* Payment Modal */}
+      <Dialog open={showPaymentModal} onOpenChange={setShowPaymentModal}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Record New Payment</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div>
+              <Label htmlFor="invoice">Select Invoice</Label>
+              <div className="mt-1 relative">
+                <select
+                  id="invoice"
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  <option value="INV-3487">INV-3487 - Business Travel International</option>
+                  <option value="INV-3485">INV-3485 - Holiday Planners</option>
+                  <option value="INV-3482">INV-3482 - Executive Travel</option>
+                  <option value="INV-3480">INV-3480 - World Tours Corp</option>
+                </select>
+                <ChevronDown className="absolute right-3 top-2.5 h-4 w-4 opacity-50" />
+              </div>
+            </div>
+            
+            <div>
+              <Label htmlFor="amount">Amount</Label>
+              <div className="mt-1 relative">
+                <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input id="amount" placeholder="0.00" className="pl-9" />
+              </div>
+            </div>
+            
+            <div>
+              <Label>Payment Method</Label>
+              <div className="mt-3 grid grid-cols-3 gap-3">
+                <div>
+                  <label
+                    className={`flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground ${
+                      paymentMethod === 'creditCard' ? 'border-primary' : ''
+                    }`}
+                  >
+                    <CreditCard className="mb-3 h-6 w-6" />
+                    <div className="text-sm font-medium">Credit Card</div>
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="creditCard"
+                      className="sr-only"
+                      checked={paymentMethod === 'creditCard'}
+                      onChange={() => setPaymentMethod('creditCard')}
+                    />
+                  </label>
+                </div>
+                
+                <div>
+                  <label
+                    className={`flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground ${
+                      paymentMethod === 'bank' ? 'border-primary' : ''
+                    }`}
+                  >
+                    <Wallet className="mb-3 h-6 w-6" />
+                    <div className="text-sm font-medium">Bank Transfer</div>
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="bank"
+                      className="sr-only"
+                      checked={paymentMethod === 'bank'}
+                      onChange={() => setPaymentMethod('bank')}
+                    />
+                  </label>
+                </div>
+                
+                <div>
+                  <label
+                    className={`flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground ${
+                      paymentMethod === 'other' ? 'border-primary' : ''
+                    }`}
+                  >
+                    <DollarSign className="mb-3 h-6 w-6" />
+                    <div className="text-sm font-medium">Other</div>
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="other"
+                      className="sr-only"
+                      checked={paymentMethod === 'other'}
+                      onChange={() => setPaymentMethod('other')}
+                    />
+                  </label>
+                </div>
+              </div>
+            </div>
+            
+            {paymentMethod === 'creditCard' && (
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="cardNumber">Card Number</Label>
+                  <Input id="cardNumber" placeholder="1234 5678 9012 3456" />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="expiryDate">Expiry Date</Label>
+                    <Input id="expiryDate" placeholder="MM/YY" />
+                  </div>
+                  <div>
+                    <Label htmlFor="cvv">CVV</Label>
+                    <Input id="cvv" placeholder="123" />
+                  </div>
+                </div>
+                
+                <div>
+                  <Label htmlFor="nameOnCard">Name on Card</Label>
+                  <Input id="nameOnCard" placeholder="John Doe" />
+                </div>
+              </div>
+            )}
+            
+            {paymentMethod === 'bank' && (
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="bankName">Bank Name</Label>
+                  <Input id="bankName" placeholder="Bank of America" />
+                </div>
+                
+                <div>
+                  <Label htmlFor="accountNumber">Account Number</Label>
+                  <Input id="accountNumber" placeholder="1234567890" />
+                </div>
+                
+                <div>
+                  <Label htmlFor="routingNumber">Routing Number</Label>
+                  <Input id="routingNumber" placeholder="123456789" />
+                </div>
+              </div>
+            )}
+            
+            <div>
+              <Label htmlFor="paymentNotes">Notes</Label>
+              <textarea
+                id="paymentNotes"
+                placeholder="Add any relevant notes about this payment"
+                className="mt-1 block w-full rounded-md border border-input px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                rows={3}
+              ></textarea>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPaymentModal(false)}>Cancel</Button>
+            <Button type="submit" onClick={() => setShowPaymentModal(false)}>Record Payment</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default Payments;
