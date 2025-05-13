@@ -24,7 +24,7 @@ export const REFUND_COMPLETED_STATUSES = [
 ];
 
 // Helper function to determine badge variant based on status
-export const getBookingStatusVariant = (status: BookingStatus): string => {
+export const getBookingStatusVariant = (status: BookingStatus): "info" | "success" | "destructive" | "neutral" => {
   switch (status) {
     case BookingStatus.CONFIRMED:
       return 'info';
@@ -39,12 +39,12 @@ export const getBookingStatusVariant = (status: BookingStatus): string => {
   }
 };
 
-export const getAmendStatusVariant = (status?: AmendStatus): string => {
+export const getAmendStatusVariant = (status?: AmendStatus): "warning" | "neutral" => {
   if (!status || status === AmendStatus.NONE) return 'neutral';
   return 'warning';
 };
 
-export const getRefundStatusVariant = (status?: RefundStatus): string => {
+export const getRefundStatusVariant = (status?: RefundStatus): "pending" | "success" | "danger" | "neutral" => {
   if (!status || status === RefundStatus.NONE) return 'neutral';
   switch (status) {
     case RefundStatus.REFUND_APPLIED:
@@ -74,4 +74,13 @@ export const isCompletedBooking = (status: BookingStatus, refundStatus?: RefundS
 // Helper function to determine if a booking is considered "cancelled" for filtering
 export const isCancelledBooking = (status: BookingStatus): boolean => {
   return CANCELLED_BOOKING_STATUSES.includes(status);
+};
+
+// Helper function to determine if a booking/passenger is eligible for refund
+export const isRefundable = (status: BookingStatus, refundStatus?: RefundStatus): boolean => {
+  // Only ticketed bookings with no refund status or rejected refunds can be refunded
+  return status === BookingStatus.TICKETED && 
+    (!refundStatus || 
+     refundStatus === RefundStatus.NONE || 
+     refundStatus === RefundStatus.REFUND_REJECTED);
 };
