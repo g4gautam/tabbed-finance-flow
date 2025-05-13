@@ -16,7 +16,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Payment } from '@/models/financialEntities';
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from '@/components/ui/use-toast';
 import { 
   BookingStatus, RefundStatus, 
   Booking, Passenger
@@ -822,5 +822,3 @@ const Payments = () => {
                     <div className="font-medium">{selectedReceipt.invoiceRef}</div>
                   </div>
                 </div>
-                
-                <div>
