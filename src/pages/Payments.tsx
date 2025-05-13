@@ -3,7 +3,7 @@ import {
   Search, Filter, Plus, Download, RefreshCw, Eye, 
   CreditCard, DollarSign, Wallet, Receipt, Calendar,
   CheckCircle, AlertTriangle, Printer, FileText, 
-  Edit, Trash2, ChevronDown, Check
+  Edit, Trash2, ChevronDown, Check, BadgeDollarSign
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +16,17 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Payment } from '@/models/financialEntities';
+import { useToast } from "@/hooks/use-toast";
+import { 
+  BookingStatus, RefundStatus, 
+  Booking, Passenger
+} from '../models/financialEntities';
+import { 
+  REFUND_IN_PROGRESS_STATUSES,
+  REFUND_COMPLETED_STATUSES,
+  getRefundStatusVariant
+} from '../constants/statusCodes';
+import { RefundService } from '../services/refundService';
 
 const Payments = () => {
   const [activeTab, setActiveTab] = useState('paymentCapture');
@@ -24,6 +35,9 @@ const Payments = () => {
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [selectedReceipt, setSelectedReceipt] = useState<any>(null);
   const [selectedVerificationItem, setSelectedVerificationItem] = useState<any>(null);
+  const [showRefundModal, setShowRefundModal] = useState(false);
+  const [selectedRefund, setSelectedRefund] = useState<any>(null);
+  const { toast } = useToast();
   
   // Sample data
   const paymentData = {
@@ -255,12 +269,138 @@ const Payments = () => {
     ]
   };
   
+  // Sample refund data - in a real app, this would come from an API or database
+  const refundData = {
+    pendingRequests: [
+      {
+        id: 'REF-1001',
+        bookingId: 'BKG-3701',
+        passengerId: 'PSG-4501',
+        customer: 'James Wilson',
+        amount: 1250.00,
+        requestDate: '2025-05-01',
+        paymentId: 'PMT-2498',
+        status: RefundStatus.REFUND_APPLIED,
+        reason: 'Flight cancelled by airline',
+        priority: 'High'
+      },
+      {
+        id: 'REF-1002',
+        bookingId: 'BKG-3705',
+        passengerId: 'PSG-4510',
+        customer: 'Maria Rodriguez',
+        amount: 850.75,
+        requestDate: '2025-05-01',
+        paymentId: 'PMT-2499',
+        status: RefundStatus.REFUND_APPLIED,
+        reason: 'Customer requested cancellation',
+        priority: 'Medium'
+      },
+      {
+        id: 'REF-1003',
+        bookingId: 'BKG-3712',
+        passengerId: 'PSG-4525',
+        customer: 'Robert Johnson',
+        amount: 2100.50,
+        requestDate: '2025-04-30',
+        paymentId: 'PMT-2495',
+        status: RefundStatus.REFUND_APPLIED,
+        reason: 'Duplicate booking',
+        priority: 'Low'
+      },
+      {
+        id: 'REF-1004',
+        bookingId: 'BKG-3715',
+        passengerId: 'PSG-4530',
+        customer: 'Sarah Thompson',
+        amount: 1575.25,
+        requestDate: '2025-04-30',
+        paymentId: 'PMT-2493',
+        status: RefundStatus.REFUND_IN_PROCESS,
+        reason: 'Change of travel plans',
+        priority: 'Medium'
+      }
+    ],
+    processedRefunds: [
+      {
+        id: 'REF-0995',
+        bookingId: 'BKG-3685',
+        passengerId: 'PSG-4480',
+        customer: 'Michael Brown',
+        amount: 950.00,
+        requestDate: '2025-04-28',
+        processedDate: '2025-04-29',
+        paymentId: 'PMT-2485',
+        status: RefundStatus.REFUNDED,
+        reason: 'Flight rescheduled',
+        processor: 'Alex Johnson',
+        transactionId: 'TXN-38495'
+      },
+      {
+        id: 'REF-0996',
+        bookingId: 'BKG-3687',
+        passengerId: 'PSG-4485',
+        customer: 'Emily Davis',
+        amount: 1850.25,
+        requestDate: '2025-04-27',
+        processedDate: '2025-04-29',
+        paymentId: 'PMT-2483',
+        status: RefundStatus.REFUNDED,
+        reason: 'Medical emergency',
+        processor: 'Sam Wilson',
+        transactionId: 'TXN-38496'
+      },
+      {
+        id: 'REF-0997',
+        bookingId: 'BKG-3690',
+        passengerId: 'PSG-4490',
+        customer: 'Daniel Martinez',
+        amount: 750.50,
+        requestDate: '2025-04-26',
+        processedDate: '2025-04-28',
+        paymentId: 'PMT-2480',
+        status: RefundStatus.REFUND_REJECTED,
+        reason: 'Non-refundable fare',
+        processor: 'Emma Clark',
+        notes: 'Customer was informed about non-refundable policy during booking'
+      },
+      {
+        id: 'REF-0998',
+        bookingId: 'BKG-3692',
+        passengerId: 'PSG-4495',
+        customer: 'Olivia Johnson',
+        amount: 1200.00,
+        requestDate: '2025-04-25',
+        processedDate: '2025-04-28',
+        paymentId: 'PMT-2478',
+        status: RefundStatus.REFUNDED,
+        reason: 'Service quality issue',
+        processor: 'Alex Johnson',
+        transactionId: 'TXN-38493'
+      }
+    ]
+  };
+  
   // Format currency
   const formatCurrency = (amount: number, currency = 'USD') => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: currency
     }).format(amount);
+  };
+
+  // Handle refund processing
+  const handleProcessRefund = (refund: any, approved: boolean) => {
+    // In a real application, this would call an API to process the refund
+    setSelectedRefund(null);
+    setShowRefundModal(false);
+    
+    // Show feedback toast
+    toast({
+      title: approved ? "Refund approved" : "Refund rejected",
+      description: `${refund.id} for ${formatCurrency(refund.amount)} has been ${approved ? 'approved' : 'rejected'}.`,
+      variant: approved ? "default" : "destructive",
+    });
   };
 
   // Render Payment Capture Tab
@@ -781,6 +921,290 @@ const Payments = () => {
     );
   };
 
+  // Render Refunds Tab
+  const renderRefunds = () => {
+    return (
+      <div className="space-y-6">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">Pending Refunds</p>
+                  <p className="text-2xl font-bold">{refundData.pendingRequests.length}</p>
+                </div>
+                <AlertTriangle className="h-5 w-5 text-yellow-500" />
+              </div>
+              <p className="text-sm text-muted-foreground mt-2">
+                Value: {formatCurrency(
+                  refundData.pendingRequests.reduce((sum, req) => sum + req.amount, 0)
+                )}
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">Refunds Today</p>
+                  <p className="text-2xl font-bold">2</p>
+                </div>
+                <BadgeDollarSign className="h-5 w-5 text-primary" />
+              </div>
+              <p className="text-sm text-muted-foreground mt-2">Value: {formatCurrency(2800.25)}</p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">Approved Refunds</p>
+                  <p className="text-2xl font-bold">3</p>
+                </div>
+                <CheckCircle className="h-5 w-5 text-green-500" />
+              </div>
+              <p className="text-sm text-muted-foreground mt-2">Value: {formatCurrency(4000.25)}</p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">Rejected Refunds</p>
+                  <p className="text-2xl font-bold">1</p>
+                </div>
+                <AlertTriangle className="h-5 w-5 text-red-500" />
+              </div>
+              <p className="text-sm text-muted-foreground mt-2">Value: {formatCurrency(750.50)}</p>
+            </CardContent>
+          </Card>
+        </div>
+        
+        {/* Pending Refund Requests */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <div className="space-y-1">
+              <CardTitle>Pending Refund Requests</CardTitle>
+              <CardDescription>Refunds awaiting approval or processing</CardDescription>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input 
+                  type="search" 
+                  placeholder="Search refunds..." 
+                  className="w-[200px] pl-8 md:w-[300px]"
+                />
+              </div>
+              <Button variant="outline" size="sm">
+                <Filter className="mr-2 h-4 w-4" />
+                Filter
+              </Button>
+              <Button variant="outline" size="sm">
+                <Download className="mr-2 h-4 w-4" />
+                Export
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Refund ID</TableHead>
+                  <TableHead>Booking</TableHead>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Request Date</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Priority</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {refundData.pendingRequests.map((refund) => (
+                  <TableRow key={refund.id}>
+                    <TableCell className="font-medium text-blue-600">{refund.id}</TableCell>
+                    <TableCell>{refund.bookingId}</TableCell>
+                    <TableCell>{refund.customer}</TableCell>
+                    <TableCell className="font-medium">{formatCurrency(refund.amount)}</TableCell>
+                    <TableCell>{refund.requestDate}</TableCell>
+                    <TableCell>
+                      <Badge variant={getRefundStatusVariant(refund.status) as any}>
+                        {refund.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={
+                        refund.priority === 'High' ? 'destructive' : 
+                        refund.priority === 'Medium' ? 'outline' : 
+                        'secondary'
+                      }>
+                        {refund.priority}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Button 
+                        size="sm" 
+                        onClick={() => {
+                          setSelectedRefund(refund);
+                          setShowRefundModal(true);
+                        }}
+                      >
+                        Process
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+        
+        {/* Processed Refunds */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle>Processed Refunds</CardTitle>
+            <CardDescription>History of approved and rejected refunds</CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Refund ID</TableHead>
+                  <TableHead>Booking</TableHead>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Request Date</TableHead>
+                  <TableHead>Process Date</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Processed By</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {refundData.processedRefunds.map((refund) => (
+                  <TableRow key={refund.id}>
+                    <TableCell className="font-medium text-blue-600">{refund.id}</TableCell>
+                    <TableCell>{refund.bookingId}</TableCell>
+                    <TableCell>{refund.customer}</TableCell>
+                    <TableCell className="font-medium">{formatCurrency(refund.amount)}</TableCell>
+                    <TableCell>{refund.requestDate}</TableCell>
+                    <TableCell>{refund.processedDate}</TableCell>
+                    <TableCell>
+                      <Badge variant={getRefundStatusVariant(refund.status) as any}>
+                        {refund.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{refund.processor}</TableCell>
+                    <TableCell>
+                      <div className="flex space-x-2">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600">
+                          <Printer className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+        
+        {/* Refund Detail Modal */}
+        {showRefundModal && selectedRefund && (
+          <Dialog open={showRefundModal} onOpenChange={setShowRefundModal}>
+            <DialogContent className="sm:max-w-[550px]">
+              <DialogHeader>
+                <DialogTitle>Refund Request Details</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm text-muted-foreground">Refund ID</Label>
+                    <p className="font-medium text-blue-600">{selectedRefund.id}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm text-muted-foreground">Booking ID</Label>
+                    <p className="font-medium">{selectedRefund.bookingId}</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <Label className="text-sm text-muted-foreground">Customer</Label>
+                  <p className="font-medium">{selectedRefund.customer}</p>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm text-muted-foreground">Payment ID</Label>
+                    <p className="font-medium">{selectedRefund.paymentId}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm text-muted-foreground">Amount</Label>
+                    <p className="font-medium">{formatCurrency(selectedRefund.amount)}</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <Label className="text-sm text-muted-foreground">Refund Reason</Label>
+                  <p className="font-medium">{selectedRefund.reason}</p>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm text-muted-foreground">Request Date</Label>
+                    <p className="font-medium">{selectedRefund.requestDate}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm text-muted-foreground">Priority</Label>
+                    <Badge variant={
+                      selectedRefund.priority === 'High' ? 'destructive' : 
+                      selectedRefund.priority === 'Medium' ? 'outline' : 
+                      'secondary'
+                    }>
+                      {selectedRefund.priority}
+                    </Badge>
+                  </div>
+                </div>
+                
+                <div>
+                  <Label htmlFor="refund-notes">Notes</Label>
+                  <textarea
+                    id="refund-notes"
+                    className="mt-1 block w-full rounded-md border border-input px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    rows={3}
+                    placeholder="Add notes about this refund..."
+                  ></textarea>
+                </div>
+              </div>
+              <DialogFooter className="flex justify-between">
+                <Button 
+                  variant="destructive" 
+                  onClick={() => handleProcessRefund(selectedRefund, false)}
+                >
+                  Reject Refund
+                </Button>
+                <Button 
+                  onClick={() => handleProcessRefund(selectedRefund, true)}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  Approve Refund
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
+      </div>
+    );
+  };
+
   // Payment Modal
   const renderPaymentModal = () => {
     return (
@@ -1033,17 +1457,18 @@ const Payments = () => {
               <CheckCircle className="h-5 w-5 text-green-500" />
             </div>
             <p className="text-sm text-muted-foreground mt-2">Value: {formatCurrency(98450.25)}</p>
-          </CardContent>
+          </Card>
         </Card>
       </div>
       
       {/* Tabs */}
       <Tabs defaultValue="paymentCapture" className="w-full" onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="paymentCapture">Payment Capture</TabsTrigger>
           <TabsTrigger value="paymentVerification">Payment Verification</TabsTrigger>
           <TabsTrigger value="paymentReceipts">Payment Receipts</TabsTrigger>
           <TabsTrigger value="paymentMethods">Payment Methods</TabsTrigger>
+          <TabsTrigger value="refunds">Refunds</TabsTrigger>
         </TabsList>
         <TabsContent value="paymentCapture" className="mt-6">
           {renderPaymentCapture()}
@@ -1056,6 +1481,9 @@ const Payments = () => {
         </TabsContent>
         <TabsContent value="paymentMethods" className="mt-6">
           {renderPaymentMethods()}
+        </TabsContent>
+        <TabsContent value="refunds" className="mt-6">
+          {renderRefunds()}
         </TabsContent>
       </Tabs>
       
