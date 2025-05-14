@@ -271,118 +271,6 @@ const Payments = () => {
     ]
   };
   
-  // Sample refund data - in a real app, this would come from an API or database
-  const refundData = {
-    pendingRequests: [
-      {
-        id: 'REF-1001',
-        bookingId: 'BKG-3701',
-        passengerId: 'PSG-4501',
-        customer: 'James Wilson',
-        amount: 1250.00,
-        requestDate: '2025-05-01',
-        paymentId: 'PMT-2498',
-        status: RefundStatus.REFUND_APPLIED,
-        reason: 'Flight cancelled by airline',
-        priority: 'High'
-      },
-      {
-        id: 'REF-1002',
-        bookingId: 'BKG-3705',
-        passengerId: 'PSG-4510',
-        customer: 'Maria Rodriguez',
-        amount: 850.75,
-        requestDate: '2025-05-01',
-        paymentId: 'PMT-2499',
-        status: RefundStatus.REFUND_APPLIED,
-        reason: 'Customer requested cancellation',
-        priority: 'Medium'
-      },
-      {
-        id: 'REF-1003',
-        bookingId: 'BKG-3712',
-        passengerId: 'PSG-4525',
-        customer: 'Robert Johnson',
-        amount: 2100.50,
-        requestDate: '2025-04-30',
-        paymentId: 'PMT-2495',
-        status: RefundStatus.REFUND_APPLIED,
-        reason: 'Duplicate booking',
-        priority: 'Low'
-      },
-      {
-        id: 'REF-1004',
-        bookingId: 'BKG-3715',
-        passengerId: 'PSG-4530',
-        customer: 'Sarah Thompson',
-        amount: 1575.25,
-        requestDate: '2025-04-30',
-        paymentId: 'PMT-2493',
-        status: RefundStatus.REFUND_IN_PROCESS,
-        reason: 'Change of travel plans',
-        priority: 'Medium'
-      }
-    ],
-    processedRefunds: [
-      {
-        id: 'REF-0995',
-        bookingId: 'BKG-3685',
-        passengerId: 'PSG-4480',
-        customer: 'Michael Brown',
-        amount: 950.00,
-        requestDate: '2025-04-28',
-        processedDate: '2025-04-29',
-        paymentId: 'PMT-2485',
-        status: RefundStatus.REFUNDED,
-        reason: 'Flight rescheduled',
-        processor: 'Alex Johnson',
-        transactionId: 'TXN-38495'
-      },
-      {
-        id: 'REF-0996',
-        bookingId: 'BKG-3687',
-        passengerId: 'PSG-4485',
-        customer: 'Emily Davis',
-        amount: 1850.25,
-        requestDate: '2025-04-27',
-        processedDate: '2025-04-29',
-        paymentId: 'PMT-2483',
-        status: RefundStatus.REFUNDED,
-        reason: 'Medical emergency',
-        processor: 'Sam Wilson',
-        transactionId: 'TXN-38496'
-      },
-      {
-        id: 'REF-0997',
-        bookingId: 'BKG-3690',
-        passengerId: 'PSG-4490',
-        customer: 'Daniel Martinez',
-        amount: 750.50,
-        requestDate: '2025-04-26',
-        processedDate: '2025-04-28',
-        paymentId: 'PMT-2480',
-        status: RefundStatus.REFUND_REJECTED,
-        reason: 'Non-refundable fare',
-        processor: 'Emma Clark',
-        notes: 'Customer was informed about non-refundable policy during booking'
-      },
-      {
-        id: 'REF-0998',
-        bookingId: 'BKG-3692',
-        passengerId: 'PSG-4495',
-        customer: 'Olivia Johnson',
-        amount: 1200.00,
-        requestDate: '2025-04-25',
-        processedDate: '2025-04-28',
-        paymentId: 'PMT-2478',
-        status: RefundStatus.REFUNDED,
-        reason: 'Service quality issue',
-        processor: 'Alex Johnson',
-        transactionId: 'TXN-38493'
-      }
-    ]
-  };
-  
   // Format currency
   const formatCurrency = (amount: number, currency = 'USD') => {
     return new Intl.NumberFormat('en-US', {
@@ -972,18 +860,22 @@ const Payments = () => {
       </div>
       
       <Tabs defaultValue="paymentCapture" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-4 w-full max-w-lg">
+        <TabsList className="grid grid-cols-5 w-full max-w-xl">
           <TabsTrigger value="paymentCapture">
             <CreditCard className="mr-2 h-4 w-4" />
             Payment Capture
           </TabsTrigger>
-          <TabsTrigger value="refunds">
-            <Wallet className="mr-2 h-4 w-4" />
-            Refunds
-          </TabsTrigger>
           <TabsTrigger value="verification">
             <CheckCircle className="mr-2 h-4 w-4" />
             Verification
+          </TabsTrigger>
+          <TabsTrigger value="receipts">
+            <Receipt className="mr-2 h-4 w-4" />
+            Receipts
+          </TabsTrigger>
+          <TabsTrigger value="refunds">
+            <Wallet className="mr-2 h-4 w-4" />
+            Refunds
           </TabsTrigger>
           <TabsTrigger value="paymentMethods">
             <BadgeDollarSign className="mr-2 h-4 w-4" />
@@ -993,6 +885,14 @@ const Payments = () => {
         
         <TabsContent value="paymentCapture">
           {renderPaymentCapture()}
+        </TabsContent>
+        
+        <TabsContent value="verification">
+          {renderPaymentVerification()}
+        </TabsContent>
+        
+        <TabsContent value="receipts">
+          {renderPaymentReceipts()}
         </TabsContent>
         
         <TabsContent value="refunds">
@@ -1123,10 +1023,6 @@ const Payments = () => {
               </CardContent>
             </Card>
           </div>
-        </TabsContent>
-        
-        <TabsContent value="verification">
-          {renderPaymentVerification()}
         </TabsContent>
         
         <TabsContent value="paymentMethods">
@@ -1299,91 +1195,6 @@ const Payments = () => {
                   </Button>
                   <Button onClick={() => handleProcessRefund(selectedRefund, true)}>
                     Approve Refund
-                  </Button>
-                </div>
-              </div>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
-      
-      {/* Receipt Modal */}
-      {showReceiptModal && selectedReceipt && (
-        <Dialog open={showReceiptModal} onOpenChange={setShowReceiptModal}>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>Receipt Details</DialogTitle>
-            </DialogHeader>
-            <div className="p-4 border rounded-md space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="text-2xl font-bold">Payment Receipt</div>
-                <div className="text-sm text-gray-500">{selectedReceipt.date}</div>
-              </div>
-              
-              <div className="border-t border-b py-3 space-y-2">
-                <div className="grid grid-cols-2">
-                  <div className="text-sm text-gray-500">Receipt ID:</div>
-                  <div className="font-medium">{selectedReceipt.id}</div>
-                </div>
-                <div className="grid grid-cols-2">
-                  <div className="text-sm text-gray-500">Payment ID:</div>
-                  <div className="font-medium">{selectedReceipt.paymentId}</div>
-                </div>
-                <div className="grid grid-cols-2">
-                  <div className="text-sm text-gray-500">Invoice:</div>
-                  <div className="font-medium">{selectedReceipt.invoiceRef}</div>
-                </div>
-              </div>
-              
-              <div className="border-b py-3 space-y-2">
-                <div className="grid grid-cols-2">
-                  <div className="text-sm text-gray-500">Customer:</div>
-                  <div className="font-medium">{selectedReceipt.customer}</div>
-                </div>
-                <div className="grid grid-cols-2">
-                  <div className="text-sm text-gray-500">Amount:</div>
-                  <div className="font-medium">{formatCurrency(selectedReceipt.amount)}</div>
-                </div>
-                <div className="grid grid-cols-2">
-                  <div className="text-sm text-gray-500">Payment Method:</div>
-                  <div className="font-medium">{selectedReceipt.method}</div>
-                </div>
-                {selectedReceipt.cardLast4 && (
-                  <div className="grid grid-cols-2">
-                    <div className="text-sm text-gray-500">Card Details:</div>
-                    <div className="font-medium">{selectedReceipt.cardType} ending in {selectedReceipt.cardLast4}</div>
-                  </div>
-                )}
-                {selectedReceipt.authorizationCode && (
-                  <div className="grid grid-cols-2">
-                    <div className="text-sm text-gray-500">Authorization:</div>
-                    <div className="font-medium">{selectedReceipt.authorizationCode}</div>
-                  </div>
-                )}
-                {selectedReceipt.bankReference && (
-                  <div className="grid grid-cols-2">
-                    <div className="text-sm text-gray-500">Bank Reference:</div>
-                    <div className="font-medium">{selectedReceipt.bankReference}</div>
-                  </div>
-                )}
-              </div>
-              
-              <div className="flex justify-between items-center pt-2">
-                <div className="text-sm text-gray-500">Generated on {new Date().toLocaleDateString()}</div>
-                <div className="text-sm font-medium">Thank you for your business</div>
-              </div>
-            </div>
-            <DialogFooter className="sm:justify-start">
-              <div className="w-full flex justify-between">
-                <Button variant="outline" onClick={() => setShowReceiptModal(false)}>Close</Button>
-                <div className="space-x-2">
-                  <Button variant="outline">
-                    <Printer className="mr-2 h-4 w-4" />
-                    Print
-                  </Button>
-                  <Button>
-                    <Download className="mr-2 h-4 w-4" />
-                    Download PDF
                   </Button>
                 </div>
               </div>
