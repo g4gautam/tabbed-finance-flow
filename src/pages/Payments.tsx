@@ -822,3 +822,649 @@ const Payments = () => {
                     <div className="font-medium">{selectedReceipt.invoiceRef}</div>
                   </div>
                 </div>
+                
+                <div className="border-b py-3 space-y-2">
+                  <div className="grid grid-cols-2">
+                    <div className="text-sm text-gray-500">Customer:</div>
+                    <div className="font-medium">{selectedReceipt.customer}</div>
+                  </div>
+                  <div className="grid grid-cols-2">
+                    <div className="text-sm text-gray-500">Amount:</div>
+                    <div className="font-medium">{formatCurrency(selectedReceipt.amount)}</div>
+                  </div>
+                  <div className="grid grid-cols-2">
+                    <div className="text-sm text-gray-500">Payment Method:</div>
+                    <div className="font-medium">{selectedReceipt.method}</div>
+                  </div>
+                  {selectedReceipt.cardLast4 && (
+                    <div className="grid grid-cols-2">
+                      <div className="text-sm text-gray-500">Card Details:</div>
+                      <div className="font-medium">{selectedReceipt.cardType} ending in {selectedReceipt.cardLast4}</div>
+                    </div>
+                  )}
+                  {selectedReceipt.authorizationCode && (
+                    <div className="grid grid-cols-2">
+                      <div className="text-sm text-gray-500">Authorization:</div>
+                      <div className="font-medium">{selectedReceipt.authorizationCode}</div>
+                    </div>
+                  )}
+                  {selectedReceipt.bankReference && (
+                    <div className="grid grid-cols-2">
+                      <div className="text-sm text-gray-500">Bank Reference:</div>
+                      <div className="font-medium">{selectedReceipt.bankReference}</div>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="flex justify-between items-center pt-2">
+                  <div className="text-sm text-gray-500">Generated on {new Date().toLocaleDateString()}</div>
+                  <div className="text-sm font-medium">Thank you for your business</div>
+                </div>
+              </div>
+              <DialogFooter className="sm:justify-start">
+                <div className="w-full flex justify-between">
+                  <Button variant="outline" onClick={() => setShowReceiptModal(false)}>Close</Button>
+                  <div className="space-x-2">
+                    <Button variant="outline">
+                      <Printer className="mr-2 h-4 w-4" />
+                      Print
+                    </Button>
+                    <Button>
+                      <Download className="mr-2 h-4 w-4" />
+                      Download PDF
+                    </Button>
+                  </div>
+                </div>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
+      </div>
+    );
+  };
+
+  // Render Payment Methods Tab
+  const renderPaymentMethods = () => {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <div className="space-y-1">
+              <CardTitle>Payment Methods</CardTitle>
+              <CardDescription>Configure and manage payment methods</CardDescription>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input 
+                  type="search" 
+                  placeholder="Search payment methods..." 
+                  className="w-[200px] pl-8 md:w-[300px]"
+                />
+              </div>
+              <Button size="sm" onClick={handleAddPaymentMethod}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add Payment Method
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Processing Fee</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Currencies</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paymentData.paymentMethods.map((method) => (
+                  <TableRow key={method.id}>
+                    <TableCell className="font-medium">{method.name}</TableCell>
+                    <TableCell>{method.type}</TableCell>
+                    <TableCell>{method.processingFee}</TableCell>
+                    <TableCell>
+                      <Badge variant={method.status === 'Active' ? "success" : "secondary"}>
+                        {method.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{method.supportedCurrencies.join(', ')}</TableCell>
+                    <TableCell>
+                      <div className="flex space-x-2">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditPaymentMethod(method)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
+
+  return (
+    <div className="container mx-auto py-6 space-y-8">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">Payments & Refunds</h1>
+          <p className="text-muted-foreground">Manage payments, refunds, and receipts</p>
+        </div>
+        <div className="flex space-x-2">
+          <Button variant="outline" size="sm">
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Refresh
+          </Button>
+          <Button variant="outline" size="sm">
+            <Download className="mr-2 h-4 w-4" />
+            Export Data
+          </Button>
+        </div>
+      </div>
+      
+      <Tabs defaultValue="paymentCapture" value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid grid-cols-4 w-full max-w-lg">
+          <TabsTrigger value="paymentCapture">
+            <CreditCard className="mr-2 h-4 w-4" />
+            Payment Capture
+          </TabsTrigger>
+          <TabsTrigger value="refunds">
+            <Wallet className="mr-2 h-4 w-4" />
+            Refunds
+          </TabsTrigger>
+          <TabsTrigger value="verification">
+            <CheckCircle className="mr-2 h-4 w-4" />
+            Verification
+          </TabsTrigger>
+          <TabsTrigger value="paymentMethods">
+            <BadgeDollarSign className="mr-2 h-4 w-4" />
+            Payment Methods
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="paymentCapture">
+          {renderPaymentCapture()}
+        </TabsContent>
+        
+        <TabsContent value="refunds">
+          <div className="space-y-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <div className="space-y-1">
+                  <CardTitle>Pending Refund Requests</CardTitle>
+                  <CardDescription>Refund requests awaiting processing</CardDescription>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                      type="search" 
+                      placeholder="Search refunds..." 
+                      className="w-[200px] pl-8 md:w-[300px]"
+                    />
+                  </div>
+                  <Button variant="outline" size="sm">
+                    <Filter className="mr-2 h-4 w-4" />
+                    Filter
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <Download className="mr-2 h-4 w-4" />
+                    Export
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Refund ID</TableHead>
+                      <TableHead>Booking ID</TableHead>
+                      <TableHead>Customer</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Request Date</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Priority</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {refundData.pendingRequests.map((refund) => (
+                      <TableRow key={refund.id}>
+                        <TableCell className="font-medium text-blue-600">{refund.id}</TableCell>
+                        <TableCell>{refund.bookingId}</TableCell>
+                        <TableCell>{refund.customer}</TableCell>
+                        <TableCell className="font-medium">{formatCurrency(refund.amount)}</TableCell>
+                        <TableCell>{refund.requestDate}</TableCell>
+                        <TableCell>
+                          <Badge variant={
+                            REFUND_IN_PROGRESS_STATUSES.includes(refund.status) ? 
+                              "outline" : 
+                              getRefundStatusVariant(refund.status)
+                          }>
+                            {refund.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            refund.priority === 'High' 
+                              ? 'bg-red-100 text-red-800' 
+                              : refund.priority === 'Medium'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-blue-100 text-blue-800'
+                          }`}>
+                            {refund.priority}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <Button 
+                            size="sm"
+                            onClick={() => {
+                              setSelectedRefund(refund);
+                              setShowRefundModal(true);
+                            }}
+                          >
+                            Process
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle>Processed Refunds</CardTitle>
+                <CardDescription>History of processed refund requests</CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Refund ID</TableHead>
+                      <TableHead>Booking ID</TableHead>
+                      <TableHead>Customer</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Request Date</TableHead>
+                      <TableHead>Process Date</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Processor</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {refundData.processedRefunds.map((refund) => (
+                      <TableRow key={refund.id}>
+                        <TableCell className="font-medium text-blue-600">{refund.id}</TableCell>
+                        <TableCell>{refund.bookingId}</TableCell>
+                        <TableCell>{refund.customer}</TableCell>
+                        <TableCell className="font-medium">{formatCurrency(refund.amount)}</TableCell>
+                        <TableCell>{refund.requestDate}</TableCell>
+                        <TableCell>{refund.processedDate}</TableCell>
+                        <TableCell>
+                          <Badge variant={getRefundStatusVariant(refund.status)}>
+                            {refund.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{refund.processor}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="verification">
+          {renderPaymentVerification()}
+        </TabsContent>
+        
+        <TabsContent value="paymentMethods">
+          {renderPaymentMethods()}
+        </TabsContent>
+      </Tabs>
+      
+      {/* Payment Modal */}
+      {showPaymentModal && (
+        <Dialog open={showPaymentModal} onOpenChange={setShowPaymentModal}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Record New Payment</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="invoice">Invoice</Label>
+                <Input id="invoice" placeholder="Select invoice..." />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="customer">Customer</Label>
+                  <Input id="customer" placeholder="Customer name..." />
+                </div>
+                <div>
+                  <Label htmlFor="amount">Amount</Label>
+                  <Input id="amount" type="number" placeholder="0.00" />
+                </div>
+              </div>
+              
+              <div>
+                <Label>Payment Method</Label>
+                <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="grid grid-cols-2 gap-2 mt-2">
+                  <div>
+                    <RadioGroupItem value="creditCard" id="creditCard" className="peer sr-only" />
+                    <Label
+                      htmlFor="creditCard"
+                      className="flex items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+                    >
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      Credit Card
+                    </Label>
+                  </div>
+                  <div>
+                    <RadioGroupItem value="bankTransfer" id="bankTransfer" className="peer sr-only" />
+                    <Label
+                      htmlFor="bankTransfer"
+                      className="flex items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+                    >
+                      <Receipt className="mr-2 h-4 w-4" />
+                      Bank Transfer
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
+              
+              {paymentMethod === 'creditCard' && (
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="cardNumber">Card Number</Label>
+                    <Input id="cardNumber" placeholder="XXXX XXXX XXXX XXXX" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="expiryDate">Expiry Date</Label>
+                      <Input id="expiryDate" placeholder="MM/YY" />
+                    </div>
+                    <div>
+                      <Label htmlFor="cvv">CVV</Label>
+                      <Input id="cvv" placeholder="123" />
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {paymentMethod === 'bankTransfer' && (
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="accountName">Account Name</Label>
+                    <Input id="accountName" placeholder="Account holder name..." />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="accountNumber">Account Number</Label>
+                      <Input id="accountNumber" placeholder="Account number..." />
+                    </div>
+                    <div>
+                      <Label htmlFor="bankCode">Bank Code</Label>
+                      <Input id="bankCode" placeholder="Bank code..." />
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              <div>
+                <Label htmlFor="notes">Payment Notes</Label>
+                <textarea
+                  id="notes"
+                  className="mt-1 block w-full rounded-md border border-input px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  rows={3}
+                  placeholder="Add notes about this payment..."
+                ></textarea>
+              </div>
+            </div>
+            <DialogFooter className="sm:justify-start">
+              <Button variant="outline" onClick={() => setShowPaymentModal(false)}>Cancel</Button>
+              <Button onClick={() => setShowPaymentModal(false)}>Process Payment</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+      
+      {/* Refund Modal */}
+      {showRefundModal && selectedRefund && (
+        <Dialog open={showRefundModal} onOpenChange={setShowRefundModal}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Process Refund Request</DialogTitle>
+            </DialogHeader>
+            <div className="p-4 border rounded-md space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm text-muted-foreground">Refund ID</Label>
+                  <p className="font-medium text-blue-600">{selectedRefund.id}</p>
+                </div>
+                <div>
+                  <Label className="text-sm text-muted-foreground">Booking ID</Label>
+                  <p className="font-medium">{selectedRefund.bookingId}</p>
+                </div>
+              </div>
+              
+              <div>
+                <Label className="text-sm text-muted-foreground">Customer</Label>
+                <p className="font-medium">{selectedRefund.customer}</p>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm text-muted-foreground">Amount</Label>
+                  <p className="font-medium">{formatCurrency(selectedRefund.amount)}</p>
+                </div>
+                <div>
+                  <Label className="text-sm text-muted-foreground">Request Date</Label>
+                  <p className="font-medium">{selectedRefund.requestDate}</p>
+                </div>
+              </div>
+              
+              <div>
+                <Label className="text-sm text-muted-foreground">Reason</Label>
+                <p>{selectedRefund.reason}</p>
+              </div>
+              
+              <div>
+                <Label htmlFor="refund-notes">Processing Notes</Label>
+                <textarea
+                  id="refund-notes"
+                  className="mt-1 block w-full rounded-md border border-input px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  rows={3}
+                  placeholder="Add notes about this refund processing..."
+                ></textarea>
+              </div>
+            </div>
+            <DialogFooter className="sm:justify-start">
+              <div className="w-full flex justify-between">
+                <Button variant="outline" onClick={() => setShowRefundModal(false)}>Cancel</Button>
+                <div className="space-x-2">
+                  <Button variant="destructive" onClick={() => handleProcessRefund(selectedRefund, false)}>
+                    Reject Refund
+                  </Button>
+                  <Button onClick={() => handleProcessRefund(selectedRefund, true)}>
+                    Approve Refund
+                  </Button>
+                </div>
+              </div>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+      
+      {/* Receipt Modal */}
+      {showReceiptModal && selectedReceipt && (
+        <Dialog open={showReceiptModal} onOpenChange={setShowReceiptModal}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Receipt Details</DialogTitle>
+            </DialogHeader>
+            <div className="p-4 border rounded-md space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="text-2xl font-bold">Payment Receipt</div>
+                <div className="text-sm text-gray-500">{selectedReceipt.date}</div>
+              </div>
+              
+              <div className="border-t border-b py-3 space-y-2">
+                <div className="grid grid-cols-2">
+                  <div className="text-sm text-gray-500">Receipt ID:</div>
+                  <div className="font-medium">{selectedReceipt.id}</div>
+                </div>
+                <div className="grid grid-cols-2">
+                  <div className="text-sm text-gray-500">Payment ID:</div>
+                  <div className="font-medium">{selectedReceipt.paymentId}</div>
+                </div>
+                <div className="grid grid-cols-2">
+                  <div className="text-sm text-gray-500">Invoice:</div>
+                  <div className="font-medium">{selectedReceipt.invoiceRef}</div>
+                </div>
+              </div>
+              
+              <div className="border-b py-3 space-y-2">
+                <div className="grid grid-cols-2">
+                  <div className="text-sm text-gray-500">Customer:</div>
+                  <div className="font-medium">{selectedReceipt.customer}</div>
+                </div>
+                <div className="grid grid-cols-2">
+                  <div className="text-sm text-gray-500">Amount:</div>
+                  <div className="font-medium">{formatCurrency(selectedReceipt.amount)}</div>
+                </div>
+                <div className="grid grid-cols-2">
+                  <div className="text-sm text-gray-500">Payment Method:</div>
+                  <div className="font-medium">{selectedReceipt.method}</div>
+                </div>
+                {selectedReceipt.cardLast4 && (
+                  <div className="grid grid-cols-2">
+                    <div className="text-sm text-gray-500">Card Details:</div>
+                    <div className="font-medium">{selectedReceipt.cardType} ending in {selectedReceipt.cardLast4}</div>
+                  </div>
+                )}
+                {selectedReceipt.authorizationCode && (
+                  <div className="grid grid-cols-2">
+                    <div className="text-sm text-gray-500">Authorization:</div>
+                    <div className="font-medium">{selectedReceipt.authorizationCode}</div>
+                  </div>
+                )}
+                {selectedReceipt.bankReference && (
+                  <div className="grid grid-cols-2">
+                    <div className="text-sm text-gray-500">Bank Reference:</div>
+                    <div className="font-medium">{selectedReceipt.bankReference}</div>
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex justify-between items-center pt-2">
+                <div className="text-sm text-gray-500">Generated on {new Date().toLocaleDateString()}</div>
+                <div className="text-sm font-medium">Thank you for your business</div>
+              </div>
+            </div>
+            <DialogFooter className="sm:justify-start">
+              <div className="w-full flex justify-between">
+                <Button variant="outline" onClick={() => setShowReceiptModal(false)}>Close</Button>
+                <div className="space-x-2">
+                  <Button variant="outline">
+                    <Printer className="mr-2 h-4 w-4" />
+                    Print
+                  </Button>
+                  <Button>
+                    <Download className="mr-2 h-4 w-4" />
+                    Download PDF
+                  </Button>
+                </div>
+              </div>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+      
+      {/* Payment Method Modal */}
+      {showPaymentMethodModal && (
+        <Dialog open={showPaymentMethodModal} onOpenChange={setShowPaymentMethodModal}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>
+                {selectedPaymentMethod ? 'Edit Payment Method' : 'Add Payment Method'}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="methodName">Method Name</Label>
+                <Input 
+                  id="methodName" 
+                  placeholder="Credit Card, Bank Transfer, etc..." 
+                  defaultValue={selectedPaymentMethod?.name || ''}
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="methodType">Method Type</Label>
+                <Input 
+                  id="methodType" 
+                  placeholder="Card Payment, Digital Wallet, etc..." 
+                  defaultValue={selectedPaymentMethod?.type || ''}
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="processingFee">Processing Fee</Label>
+                  <Input 
+                    id="processingFee" 
+                    placeholder="2.5%" 
+                    defaultValue={selectedPaymentMethod?.processingFee || ''}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="status">Status</Label>
+                  <Input 
+                    id="status" 
+                    placeholder="Active, Inactive" 
+                    defaultValue={selectedPaymentMethod?.status || 'Active'}
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <Label htmlFor="currencies">Supported Currencies</Label>
+                <Input 
+                  id="currencies" 
+                  placeholder="USD, EUR, GBP (comma-separated)" 
+                  defaultValue={selectedPaymentMethod?.supportedCurrencies.join(', ') || ''}
+                />
+              </div>
+            </div>
+            <DialogFooter className="sm:justify-start">
+              <Button variant="outline" onClick={() => setShowPaymentMethodModal(false)}>Cancel</Button>
+              <Button onClick={() => handleSavePaymentMethod({
+                name: 'New Payment Method',
+                type: 'Digital Payment',
+                processingFee: '2.0%',
+                status: 'Active',
+                supportedCurrencies: ['USD', 'EUR']
+              })}>
+                {selectedPaymentMethod ? 'Update' : 'Add'} Payment Method
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+    </div>
+  );
+};
+
+export default Payments;
