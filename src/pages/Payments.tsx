@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   Search, Filter, Plus, Download, RefreshCw, Eye, 
@@ -16,7 +17,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Payment } from '@/models/financialEntities';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { 
   BookingStatus, RefundStatus, 
   Booking, Passenger
@@ -271,6 +272,84 @@ const Payments = () => {
     ]
   };
   
+  // Add missing refund data
+  const refundData = {
+    pendingRequests: [
+      {
+        id: 'RFD-1001',
+        bookingId: 'BKG-5478',
+        customer: 'John Smith',
+        amount: 750.00,
+        requestDate: '2025-05-01',
+        status: 'Pending Approval',
+        priority: 'High',
+        reason: 'Service not provided as described'
+      },
+      {
+        id: 'RFD-1002',
+        bookingId: 'BKG-5465',
+        customer: 'Maria Garcia',
+        amount: 1200.50,
+        requestDate: '2025-04-30',
+        status: 'Documentation Required',
+        priority: 'Medium',
+        reason: 'Change of plans due to medical emergency'
+      },
+      {
+        id: 'RFD-1003',
+        bookingId: 'BKG-5432',
+        customer: 'Corporate Events Inc.',
+        amount: 3500.00,
+        requestDate: '2025-04-28',
+        status: 'Pending Approval',
+        priority: 'Low',
+        reason: 'Duplicate booking made in error'
+      }
+    ],
+    processedRefunds: [
+      {
+        id: 'RFD-996',
+        bookingId: 'BKG-5420',
+        customer: 'Sarah Johnson',
+        amount: 870.25,
+        requestDate: '2025-04-25',
+        processedDate: '2025-04-26',
+        status: 'Approved',
+        processor: 'Jane Admin'
+      },
+      {
+        id: 'RFD-997',
+        bookingId: 'BKG-5417',
+        customer: 'Robert Williams',
+        amount: 350.00,
+        requestDate: '2025-04-23',
+        processedDate: '2025-04-25',
+        status: 'Approved',
+        processor: 'Mike Manager'
+      },
+      {
+        id: 'RFD-998',
+        bookingId: 'BKG-5415',
+        customer: 'Emma Davis',
+        amount: 1500.00,
+        requestDate: '2025-04-22',
+        processedDate: '2025-04-24',
+        status: 'Rejected',
+        processor: 'Jane Admin'
+      },
+      {
+        id: 'RFD-999',
+        bookingId: 'BKG-5410',
+        customer: 'David Miller',
+        amount: 925.50,
+        requestDate: '2025-04-20',
+        processedDate: '2025-04-22',
+        status: 'Approved',
+        processor: 'Mike Manager'
+      }
+    ]
+  };
+
   // Format currency
   const formatCurrency = (amount: number, currency = 'USD') => {
     return new Intl.NumberFormat('en-US', {
@@ -946,9 +1025,9 @@ const Payments = () => {
                         <TableCell>{refund.requestDate}</TableCell>
                         <TableCell>
                           <Badge variant={
-                            REFUND_IN_PROGRESS_STATUSES.includes(refund.status) ? 
+                            REFUND_IN_PROGRESS_STATUSES.includes(refund.status as RefundStatus) ? 
                               "outline" : 
-                              getRefundStatusVariant(refund.status)
+                              getRefundStatusVariant(refund.status as RefundStatus)
                           }>
                             {refund.status}
                           </Badge>
@@ -1011,7 +1090,7 @@ const Payments = () => {
                         <TableCell>{refund.requestDate}</TableCell>
                         <TableCell>{refund.processedDate}</TableCell>
                         <TableCell>
-                          <Badge variant={getRefundStatusVariant(refund.status)}>
+                          <Badge variant={getRefundStatusVariant(refund.status as RefundStatus)}>
                             {refund.status}
                           </Badge>
                         </TableCell>
