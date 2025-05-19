@@ -1,4 +1,5 @@
 
+
 # FinanceFlow - Financial Management System
 
 ## Project Overview
@@ -245,6 +246,222 @@ Throughout the application, you'll find these common UI elements:
 | amount | Receipt amount |
 | currency | Currency code |
 
+## Forms and Tables by Page
+
+### Dashboard
+
+#### Dashboard KPI Cards
+| Field | Description |
+|-------|-------------|
+| title | KPI title |
+| value | Current value |
+| previousValue | Previous period value |
+| change | Percentage change |
+| trend | Up/down indicator |
+
+#### Recent Transactions Table
+| Column | Description |
+|--------|-------------|
+| Date | Transaction date |
+| Reference | Transaction reference number |
+| Description | Brief description |
+| Amount | Transaction amount |
+| Type | Transaction type |
+| Status | Processing status |
+
+### Ledger
+
+#### Accounts Tab - Chart of Accounts Table
+| Column | Description |
+|--------|-------------|
+| Code | Account code |
+| Name | Account name |
+| Type | Account type (asset, liability, etc.) |
+| Category | Account category |
+| Balance | Current balance |
+| Status | Active/Inactive |
+
+#### New Account Form
+| Field | Type | Description |
+|-------|------|-------------|
+| Code | Input | Unique account code |
+| Name | Input | Account name |
+| Type | Select | Account type selection |
+| Category | Select | Account category |
+| Opening Balance | Input | Initial account balance |
+| Description | Textarea | Account description |
+
+#### Journal Entries Tab - Journal Entries Table
+| Column | Description |
+|--------|-------------|
+| Date | Entry date |
+| Reference | Journal reference number |
+| Description | Transaction description |
+| Debit Account | Account being debited |
+| Credit Account | Account being credited |
+| Amount | Transaction amount |
+| Status | Posted/Draft/Pending |
+
+#### New Journal Entry Form
+| Field | Type | Description |
+|-------|------|-------------|
+| Date | DatePicker | Transaction date |
+| Reference | Input | Reference number |
+| Description | Textarea | Entry description |
+| Debit Account | Select | Account to debit |
+| Credit Account | Select | Account to credit |
+| Amount | Input | Transaction amount |
+| Currency | Select | Currency selection |
+| Booking ID | Input | Optional booking reference |
+| Passenger ID | Input | Optional passenger reference |
+| Action Type | Select | Transaction type |
+
+#### Reconciliation Tab - Unreconciled Transactions Table
+| Column | Description |
+|--------|-------------|
+| Date | Transaction date |
+| Reference | Reference number |
+| Description | Transaction description |
+| Account | Associated account |
+| Amount | Transaction amount |
+| Status | Reconciliation status |
+| Match | Match button/indicator |
+
+### Payments
+
+#### Payments Table
+| Column | Description |
+|--------|-------------|
+| Date | Payment date |
+| Reference | Payment reference |
+| Type | Payment type |
+| Amount | Payment amount |
+| Currency | Currency code |
+| Status | Payment status |
+| Method | Payment method |
+| Related To | Associated document |
+
+#### New Payment Form
+| Field | Type | Description |
+|-------|------|-------------|
+| Date | DatePicker | Payment date |
+| Invoice | Select | Associated invoice |
+| Amount | Input | Payment amount |
+| Currency | Select | Currency selection |
+| Method | Select | Payment method |
+| Reference | Input | Payment reference |
+| Description | Textarea | Payment details |
+
+### Bills & Invoices
+
+#### Invoices Table
+| Column | Description |
+|--------|-------------|
+| Invoice # | Invoice identifier |
+| Date | Issue date |
+| Due Date | Payment due date |
+| Customer | Customer name |
+| Amount | Invoice amount |
+| Currency | Currency code |
+| Status | Payment status |
+| Actions | View/Edit/Delete |
+
+#### New Invoice Form
+| Field | Type | Description |
+|-------|------|-------------|
+| Customer | Select | Customer selection |
+| Date | DatePicker | Invoice date |
+| Due Date | DatePicker | Payment due date |
+| Currency | Select | Currency selection |
+| Line Items | Repeater | Invoice line items |
+| - Description | Input | Item description |
+| - Quantity | Input | Item quantity |
+| - Unit Price | Input | Price per unit |
+| - Amount | Calculated | Line total |
+| Subtotal | Calculated | Sum before tax |
+| Tax | Input | Tax amount |
+| Total | Calculated | Final invoice amount |
+| Notes | Textarea | Additional notes |
+
+#### Bills Table
+| Column | Description |
+|--------|-------------|
+| Bill # | Bill identifier |
+| Vendor | Supplier name |
+| Date | Issue date |
+| Due Date | Payment due date |
+| Amount | Bill amount |
+| Currency | Currency code |
+| Status | Payment status |
+| Actions | View/Pay/Delete |
+
+### Analytics
+
+#### Revenue Analysis Filters
+| Field | Type | Description |
+|-------|------|-------------|
+| Date Range | DateRangePicker | Analysis period |
+| Currency | Select | Display currency |
+| Group By | Select | Grouping parameter |
+| Customer Type | MultiSelect | Filter by customer type |
+| Product | MultiSelect | Filter by product |
+
+#### Business Partner Analysis Table
+| Column | Description |
+|--------|-------------|
+| Partner | Business partner name |
+| Type | Partner type |
+| Revenue | Total revenue generated |
+| Transactions | Number of transactions |
+| Avg Value | Average transaction value |
+| Last Activity | Date of most recent transaction |
+| Change | Growth/decline indicator |
+| Risk Score | Credit risk assessment |
+
+### Expenses
+
+#### Expense Form
+| Field | Type | Description |
+|-------|------|-------------|
+| Date | DatePicker | Expense date |
+| Category | Select | Expense category |
+| Amount | Input | Expense amount |
+| Currency | Select | Currency selection |
+| Exchange Rate | Input | Currency conversion rate |
+| Office | Select | Associated office |
+| Payment Method | Select | Method of payment |
+| Description | Textarea | Expense description |
+
+#### Expense History Table
+| Column | Description |
+|--------|-------------|
+| Date | Expense date |
+| Category | Expense category |
+| Amount | Expense amount |
+| Office | Associated office |
+| Payment Method | Method of payment |
+| Description | Brief description |
+| Actions | Edit/Delete |
+
+#### Fixed Expenses Table
+| Column | Description |
+|--------|-------------|
+| Office | Office location |
+| Currency | Currency code |
+| Rent | Monthly rent amount |
+| Salaries | Monthly salary expenses |
+| Utilities | Monthly utility costs |
+| Monthly Total | Sum of fixed expenses |
+| Actions | Edit option |
+
+#### Fixed Expenses Edit Form
+| Field | Type | Description |
+|-------|------|-------------|
+| Office | Display | Office name (non-editable) |
+| Rent | Input | Monthly rent amount |
+| Salaries | Input | Monthly salary expenses |
+| Utilities | Input | Monthly utility costs |
+
 ## Available Reports
 
 ### Ledger Reports
@@ -357,3 +574,4 @@ Yes, you can connect a custom domain to your Lovable project!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+
