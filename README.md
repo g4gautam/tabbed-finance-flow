@@ -1,8 +1,48 @@
+
 # Welcome to your Lovable project
 
 ## Project info
 
 **URL**: https://lovable.dev/projects/0a6a7460-f775-444f-b9a6-88d7d2991967
+
+## Application Structure
+
+### Navigation Menu
+
+The FinanceFlow application has the following main navigation items in the sidebar:
+
+- **Dashboard** - Overview of financial data and key metrics
+- **Ledger** - Financial records and journal entries 
+- **Payments** - Payment management and processing
+- **Bills & Invoices** - Manage bills, invoices and statements
+- **Analytics** - Financial reports and data visualizations
+- **Expenses** - Expense tracking and management
+
+### Tab-based Navigation
+
+Several sections include tab-based navigation for accessing related features:
+
+- **Ledger**
+  - Accounts
+  - Journal Entries
+  - Reconciliation
+  - Reports
+
+- **Expenses**
+  - Overview
+  - Fixed Expenses
+  - Variable Expenses
+  - Reports
+
+### Common Actions and Filters
+
+Throughout the application, you'll find these common UI elements:
+
+- **Date Range Selectors** - Filter data by specific time periods
+- **Currency Filters** - Change currency display when viewing financial data
+- **Export/Print Options** - Export data to various formats
+- **Filter Controls** - Filter data by different attributes
+- **Search** - Search functionality for locating specific records
 
 ## How can I edit this code?
 
