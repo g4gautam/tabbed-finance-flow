@@ -10,7 +10,6 @@ import Payments from "./pages/Payments";
 import BillsInvoices from "./pages/BillsInvoices";
 import Analytics from "./pages/Analytics";
 import Expenses from "./pages/Expenses";
-import Bookings from "./pages/Bookings"; // New Bookings page
 import { AppLayout } from "./components/layout/AppLayout";
 import NotFound from "./pages/NotFound";
 
@@ -47,11 +46,6 @@ const App = () => (
           <Route path="/expenses" element={
             <AppLayout>
               <Expenses />
-            </AppLayout>
-          } />
-          <Route path="/bookings" element={
-            <AppLayout>
-              <Bookings />
             </AppLayout>
           } />
           <Route path="*" element={<NotFound />} />

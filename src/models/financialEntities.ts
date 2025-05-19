@@ -126,7 +126,9 @@ export enum RefundStatus {
   NONE = "None"
 }
 
-// === NEW ENTITIES FOR PASSENGER-CENTRIC BOOKING MODEL ===
+// === BOOKING MODEL ENTITIES ===
+// These are kept for reference and used by components like Payments,
+// even though the dedicated Bookings component has been removed.
 
 // Booking - master record for a flight booking transaction
 export interface Booking {
